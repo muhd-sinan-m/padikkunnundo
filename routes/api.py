@@ -1,0 +1,384 @@
+"""
+routes/api.py — REST API endpoints consumed by the frontend JavaScript.
+
+All endpoints are scoped to the authenticated user's own data (Section 10).
+No endpoint accepts an arbitrary user_id parameter — all queries use the
+user_id from the verified JWT session.
+
+Endpoints
+─────────
+  GET  /api/me                          → current user profile
+  POST /api/enroll                      → complete onboarding enrollment
+  GET  /api/subjects                    → enrolled subjects + marks for the session
+  GET  /api/electives/<semester>        → elective options for a given semester
+  GET  /api/marks/<subject_id>          → marks for one subject
+  POST /api/marks/<subject_id>          → save/update marks for one subject
+  GET  /api/grades/<subject_id>         → grade requirements for one subject
+  GET  /api/focus                       → focus priority ranking (Section 7.4)
+  GET  /api/schedule                    → exam schedule (Section 7.5)
+  GET  /api/topics                      → important topics (Section 7.6)
+"""
+
+from __future__ import annotations
+
+from flask import Blueprint, current_app, jsonify, request
+
+from grading import (
+    compute_focus_priority,
+    compute_grade_requirements,
+    get_mark_structure,
+)
+from models import Enrollment, Mark, Subject, User, db
+from routes.auth import get_current_user, login_required
+
+api_bp = Blueprint("api", __name__, url_prefix="/api")
+
+
+# ── /api/me ───────────────────────────────────────────────────────────────────
+
+@api_bp.route("/me")
+@login_required
+def me():
+    user: User = get_current_user()
+    return jsonify({
+        **user.to_dict(),
+        "platforms": {
+            "pyqportal": current_app.config["PYQPORTAL_URL"],
+            "mcq_quiz":  current_app.config["MCQ_QUIZ_URL"],
+            "placement": current_app.config["PLACEMENT_URL"],
+        },
+    })
+
+
+# ── /api/enroll ───────────────────────────────────────────────────────────────
+
+@api_bp.route("/enroll", methods=["POST"])
+@login_required
+def enroll():
+    """
+    Section 4.5 — Enrollment flow.
+
+    Body: { "semester": int, "course": str, "elective_subject_id": int | null }
+
+    Creates enrollments for:
+      1. All core (non-elective) subjects for the chosen semester.
+      2. The chosen elective subject (if the semester has one).
+
+    For elective groups that span two semesters (e.g. Sem 1–2 language
+    electives), the choice automatically carries forward — the student is
+    not asked again in Semester 2.
+    """
+    user: User = get_current_user()
+    data = request.get_json(silent=True) or {}
+
+    semester = data.get("semester")
+    course = data.get("course", "BCA Cyber Security")
+    elective_subject_id = data.get("elective_subject_id")
+
+    if not semester:
+        return jsonify({"error": "semester is required."}), 400
+
+    # ── Save basic profile ────────────────────────────────────────────────────
+    user.semester = semester
+    user.course = course
+    user.is_onboarded = True
+
+    # ── Enroll in core subjects ───────────────────────────────────────────────
+    core_subjects = Subject.query.filter_by(
+        semester=semester, is_elective=False
+    ).all()
+
+    for subject in core_subjects:
+        existing = Enrollment.query.filter_by(
+            user_id=user.id, subject_id=subject.subject_id
+        ).first()
+        if not existing:
+            db.session.add(Enrollment(
+                user_id=user.id,
+                subject_id=subject.subject_id,
+                semester=semester,
+            ))
+            # Create a blank marks row so we always have one per enrollment.
+            db.session.add(Mark(user_id=user.id, subject_id=subject.subject_id))
+
+    # ── Enroll in the chosen elective ─────────────────────────────────────────
+    if elective_subject_id:
+        elective = db.session.get(Subject, elective_subject_id)
+        if elective and elective.is_elective:
+            existing = Enrollment.query.filter_by(
+                user_id=user.id, subject_id=elective.subject_id
+            ).first()
+            if not existing:
+                db.session.add(Enrollment(
+                    user_id=user.id,
+                    subject_id=elective.subject_id,
+                    semester=semester,
+                ))
+                db.session.add(Mark(user_id=user.id, subject_id=elective.subject_id))
+
+    db.session.commit()
+    return jsonify({"ok": True, "semester": semester})
+
+
+# ── /api/subjects ─────────────────────────────────────────────────────────────
+
+@api_bp.route("/subjects")
+@login_required
+def subjects():
+    """
+    Return all subjects the authenticated student is enrolled in for their
+    current semester, with their mark structure and any entered marks.
+    """
+    user: User = get_current_user()
+
+    enrollments = (
+        Enrollment.query
+        .filter_by(user_id=user.id, semester=user.semester)
+        .join(Subject)
+        .all()
+    )
+
+    result = []
+    marks_entered = 0
+
+    for enr in enrollments:
+        subj = enr.subject
+        structure = get_mark_structure(int(subj.credit))
+
+        mark_row = Mark.query.filter_by(
+            user_id=user.id, subject_id=subj.subject_id
+        ).first()
+
+        marks_dict = {}
+        if mark_row:
+            marks_dict = {
+                "isa":  mark_row.isa,
+                "cp":   mark_row.cp,
+                "lb":   mark_row.lb,
+                "ld":   mark_row.ld,
+                "sea1": mark_row.sea1,
+            }
+            if any(v is not None for v in marks_dict.values()):
+                marks_entered += 1
+
+        result.append({
+            **subj.to_dict(),
+            "structure": structure,
+            "marks": marks_dict,
+        })
+
+    # Summary stats for the dashboard (Section 7.1)
+    on_track = _count_on_track(user, enrollments)
+
+    return jsonify({
+        "subjects": result,
+        "stats": {
+            "total_subjects": len(enrollments),
+            "marks_entered": marks_entered,
+            "on_track_for_aplus": on_track,
+        },
+    })
+
+
+def _count_on_track(user: User, enrollments) -> int:
+    """Count subjects where A+ is still achievable or already secured."""
+    count = 0
+    for enr in enrollments:
+        subj = enr.subject
+        mark_row = Mark.query.filter_by(
+            user_id=user.id, subject_id=subj.subject_id
+        ).first()
+        if not mark_row:
+            continue
+        result = compute_grade_requirements(
+            int(subj.credit),
+            isa=mark_row.isa, cp=mark_row.cp,
+            lb=mark_row.lb, ld=mark_row.ld, sea1=mark_row.sea1,
+        )
+        status = result["grades"]["A+"]["status"]
+        if status in ("secured", "achievable"):
+            count += 1
+    return count
+
+
+# ── /api/electives/<semester> ─────────────────────────────────────────────────
+
+@api_bp.route("/electives/<int:semester>")
+@login_required
+def electives(semester: int):
+    """Return elective subject options available for a given semester."""
+    subjects = Subject.query.filter_by(
+        semester=semester, is_elective=True
+    ).all()
+    return jsonify({"electives": [s.to_dict() for s in subjects]})
+
+
+# ── /api/marks/<subject_id> ───────────────────────────────────────────────────
+
+@api_bp.route("/marks/<int:subject_id>", methods=["GET"])
+@login_required
+def get_marks(subject_id: int):
+    user: User = get_current_user()
+    _assert_enrolled(user, subject_id)
+
+    mark_row = Mark.query.filter_by(
+        user_id=user.id, subject_id=subject_id
+    ).first()
+    if not mark_row:
+        return jsonify({"marks": {}}), 200
+
+    return jsonify({"marks": mark_row.to_dict()})
+
+
+@api_bp.route("/marks/<int:subject_id>", methods=["POST"])
+@login_required
+def save_marks(subject_id: int):
+    """
+    Save or update mark components for a subject.
+    SEA2 is never accepted from the client (Section 6.4).
+    All values are clamped to their credit-based maximum at the API layer.
+    """
+    user: User = get_current_user()
+    _assert_enrolled(user, subject_id)
+
+    subj = db.session.get(Subject, subject_id)
+    structure = get_mark_structure(int(subj.credit))
+    data = request.get_json(silent=True) or {}
+
+    mark_row = Mark.query.filter_by(
+        user_id=user.id, subject_id=subject_id
+    ).first()
+    if not mark_row:
+        mark_row = Mark(user_id=user.id, subject_id=subject_id)
+        db.session.add(mark_row)
+
+    # Clamp each value to its maximum; null is accepted (mark not yet entered).
+    for field in ("isa", "cp", "lb", "ld", "sea1"):
+        if field in data:
+            raw = data[field]
+            if raw is None:
+                setattr(mark_row, field, None)
+            else:
+                clamped = min(float(raw), structure[field])
+                setattr(mark_row, field, clamped)
+
+    db.session.commit()
+
+    # Immediately return updated grade requirements so the UI can update live.
+    grade_result = compute_grade_requirements(
+        int(subj.credit),
+        isa=mark_row.isa, cp=mark_row.cp,
+        lb=mark_row.lb, ld=mark_row.ld, sea1=mark_row.sea1,
+    )
+    return jsonify({"marks": mark_row.to_dict(), "grades": grade_result})
+
+
+# ── /api/grades/<subject_id> ──────────────────────────────────────────────────
+
+@api_bp.route("/grades/<int:subject_id>")
+@login_required
+def grades(subject_id: int):
+    """
+    Compute and return grade requirements for a subject using stored marks.
+    This is the A+ Calculator logic exposed as an API (Section 7.3).
+    """
+    user: User = get_current_user()
+    _assert_enrolled(user, subject_id)
+
+    subj = db.session.get(Subject, subject_id)
+    mark_row = Mark.query.filter_by(
+        user_id=user.id, subject_id=subject_id
+    ).first()
+
+    marks = {}
+    if mark_row:
+        marks = {
+            "isa": mark_row.isa, "cp": mark_row.cp,
+            "lb": mark_row.lb, "ld": mark_row.ld, "sea1": mark_row.sea1,
+        }
+
+    result = compute_grade_requirements(int(subj.credit), **marks)
+    return jsonify({
+        "subject": subj.to_dict(),
+        "grades": result,
+    })
+
+
+# ── /api/focus ────────────────────────────────────────────────────────────────
+
+@api_bp.route("/focus")
+@login_required
+def focus():
+    """
+    Section 7.4 — Focus Priority.
+    Returns subjects ranked by descending A+ difficulty.
+    Subjects with no marks are returned separately.
+    """
+    user: User = get_current_user()
+
+    enrollments = (
+        Enrollment.query
+        .filter_by(user_id=user.id, semester=user.semester)
+        .join(Subject)
+        .all()
+    )
+
+    subjects_with_marks = []
+    for enr in enrollments:
+        subj = enr.subject
+        mark_row = Mark.query.filter_by(
+            user_id=user.id, subject_id=subj.subject_id
+        ).first()
+        marks = {}
+        if mark_row:
+            marks = {
+                "isa": mark_row.isa, "cp": mark_row.cp,
+                "lb": mark_row.lb, "ld": mark_row.ld, "sea1": mark_row.sea1,
+            }
+        subjects_with_marks.append({**subj.to_dict(), "marks": marks})
+
+    ranked, no_data = compute_focus_priority(subjects_with_marks)
+    return jsonify({"ranked": ranked, "no_data": no_data})
+
+
+# ── /api/schedule ─────────────────────────────────────────────────────────────
+
+@api_bp.route("/schedule")
+@login_required
+def schedule():
+    """
+    Section 7.5 — Exam schedule.
+    Placeholder structure — dates are admin-managed and will be populated
+    once the data source is confirmed (Section 11.1).
+    """
+    # TODO: replace with database-backed schedule once admin panel is built.
+    return jsonify({"schedule": [], "message": "Exam dates will appear here once published."})
+
+
+# ── /api/topics ───────────────────────────────────────────────────────────────
+
+@api_bp.route("/topics")
+@login_required
+def topics():
+    """
+    Section 7.6 — Important topics.
+    Admin-curated, per-subject topic lists (Section 11.1 pending input).
+    """
+    # TODO: replace with database-backed topics once content is curated.
+    return jsonify({"topics": [], "message": "Important topics will appear here once published by the admin."})
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _assert_enrolled(user: User, subject_id: int) -> None:
+    """
+    Raise a 403 if the current user is not enrolled in the given subject.
+    This enforces data isolation: a student cannot read or write
+    another student's marks by guessing subject IDs.
+    """
+    enr = Enrollment.query.filter_by(
+        user_id=user.id, subject_id=subject_id
+    ).first()
+    if not enr:
+        from flask import abort
+        abort(403)

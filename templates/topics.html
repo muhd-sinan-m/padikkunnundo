@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Important Topics — padikkunnundo.in{% endblock %}
+{% block description %}Admin-curated high-priority topic lists per subject to guide your last-minute revision.{% endblock %}
+{% block page_title %}Important Topics{% endblock %}
+
+{% set active_page = 'topics' %}
+
+{% block content %}
+<!--
+  Section 7.6 — Important Topics.
+  Admin-curated, high-priority topic lists per subject.
+  Each topic links to PYQPortal so students can find a past paper immediately.
+-->
+<div id="topics-container">
+  <div class="empty-state" id="topics-loading">
+    <div class="empty-state-icon">⏳</div>
+    <div class="empty-state-title">Loading topics…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Important Topics page — Section 7.6 */
+
+(async function () {
+  const container = document.getElementById('topics-container');
+  const data = await api('/api/topics');
+
+  if (!data) {
+    container.innerHTML = renderEmpty('⚠️', 'Could not load topics', 'Please try refreshing.');
+    return;
+  }
+
+  if (!data.topics || data.topics.length === 0) {
+    container.innerHTML = renderEmpty(
+      '📚',
+      'No topics published yet',
+      data.message || 'Topic lists will appear here once curated by the admin.'
+    );
+    return;
+  }
+
+  container.innerHTML = data.topics.map(subject => `
+    <div class="topics-card" id="topics-card-${subject.subject_id}">
+      <div class="topics-card-header">
+        <div class="topics-subject-name">${escHtml(subject.subject_name)}</div>
+        <a href="${escHtml(subject.pyq_url || 'https://pyqportal.app')}"
+           target="_blank" rel="noopener" class="pyq-link"
+           id="pyq-link-${subject.subject_id}">
+          PYQPortal ↗
+        </a>
+      </div>
+      <ul class="topic-list">
+        ${subject.topics.map(t => `<li>${escHtml(t)}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+
+})();
+
+function renderEmpty(icon, title, desc) {
+  return `
+    <div class="empty-state">
+      <div class="empty-state-icon">${icon}</div>
+      <div class="empty-state-title">${title}</div>
+      <div class="empty-state-desc">${desc}</div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+</script>
+{% endblock %}

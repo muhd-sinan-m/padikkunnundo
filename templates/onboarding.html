@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Up Your Profile — padikkunnundo.in</title>
+  <meta name="description" content="Choose your semester and elective to get your personalised academic dashboard.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<div class="onboarding-page">
+  <div class="onboarding-card">
+
+    <h1 class="onboarding-heading">Set up your profile</h1>
+    <p class="onboarding-subheading">
+      Welcome, {{ user.name.split()[0] }}! Tell us which semester you're in
+      so we can assign your subjects and mark structure automatically.
+    </p>
+
+    <form id="onboarding-form" novalidate>
+
+      <!-- Course (fixed for now — BCA Cyber Security) -->
+      <div class="form-group">
+        <label class="form-label" for="course-select">Course</label>
+        <select class="form-select" id="course-select" name="course">
+          <option value="BCA Cyber Security" selected>BCA Cyber Security</option>
+        </select>
+      </div>
+
+      <!-- Semester (Section 4.5 — student selects current semester) -->
+      <div class="form-group">
+        <label class="form-label" for="semester-select">Current Semester</label>
+        <select class="form-select" id="semester-select" name="semester" required>
+          <option value="" disabled selected>Select your semester…</option>
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+        </select>
+      </div>
+
+      <!--
+        Elective selection (Section 4.5):
+        Shown only when the selected semester has an elective group.
+        For Sem 1 → language elective.
+        For Sem 3 → specialization elective.
+        For Sem 2 / 4 → elective is automatically carried over from Sem 1 / 3.
+      -->
+      <div class="elective-section" id="elective-section" style="display:none;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="elective-select" id="elective-label">Choose your elective</label>
+          <select class="form-select" id="elective-select" name="elective_subject_id">
+            <option value="" disabled selected>Select an elective…</option>
+          </select>
+          <p class="elective-note" id="elective-note"></p>
+        </div>
+      </div>
+
+      <!-- Carried-over notice for Sem 2 / 4 -->
+      <div class="elective-section" id="carryover-section" style="display:none;">
+        <p style="font-size:13px; color:var(--gray-600);">
+          <strong>Elective note:</strong> <span id="carryover-text"></span>
+          Your elective from the previous semester continues automatically — you won't be asked again.
+        </p>
+      </div>
+
+      <div id="form-error" style="display:none; margin-top:var(--space-4);" class="login-error" role="alert"></div>
+
+      <button type="submit" class="btn-primary" id="enroll-btn">
+        Set up my dashboard →
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+/* Onboarding page — Section 4.5 enrollment flow */
+
+const semesterSelect  = document.getElementById('semester-select');
+const electiveSection = document.getElementById('elective-section');
+const carryoverSection= document.getElementById('carryover-section');
+const carryoverText   = document.getElementById('carryover-text');
+const electiveSelect  = document.getElementById('elective-select');
+const electiveNote    = document.getElementById('elective-note');
+const electiveLabel   = document.getElementById('elective-label');
+const form            = document.getElementById('onboarding-form');
+const enrollBtn       = document.getElementById('enroll-btn');
+const formError       = document.getElementById('form-error');
+
+semesterSelect.addEventListener('change', async () => {
+  const sem = parseInt(semesterSelect.value);
+  electiveSection.style.display  = 'none';
+  carryoverSection.style.display = 'none';
+
+  // Section 4.5: Sem 1 → language elective, Sem 3 → specialization elective.
+  // Sem 2 and 4 → carried over, not re-selected.
+  if (sem === 1 || sem === 3) {
+    await loadElectives(sem);
+  } else if (sem === 2) {
+    carryoverText.textContent = 'Your language elective (Spanish/French/etc.) from Semester 1 continues.';
+    carryoverSection.style.display = 'block';
+  } else if (sem === 4) {
+    carryoverText.textContent = 'Your specialization elective from Semester 3 continues.';
+    carryoverSection.style.display = 'block';
+  }
+});
+
+async function loadElectives(semester) {
+  const data = await api('/api/electives/' + semester);
+  if (!data || !data.electives || data.electives.length === 0) return;
+
+  // Clear and populate
+  electiveSelect.innerHTML = '<option value="" disabled selected>Select an elective…</option>';
+  data.electives.forEach(el => {
+    const opt = document.createElement('option');
+    opt.value = el.subject_id;
+    opt.textContent = el.subject_name;
+    electiveSelect.appendChild(opt);
+  });
+
+  if (semester === 1) {
+    electiveLabel.textContent = 'Language Elective';
+    electiveNote.textContent  =
+      'Your choice here carries forward automatically to Semester 2 — you won\'t be asked to choose again.';
+  } else if (semester === 3) {
+    electiveLabel.textContent = 'Specialization Elective';
+    electiveNote.textContent  =
+      'Your choice here carries forward automatically to Semester 4.';
+  }
+
+  electiveSection.style.display = 'block';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formError.style.display = 'none';
+
+  const semester = parseInt(semesterSelect.value);
+  if (!semester) {
+    showError('Please select your semester.');
+    return;
+  }
+
+  const sem = semester;
+  let electiveId = null;
+  if ((sem === 1 || sem === 3) && electiveSection.style.display !== 'none') {
+    electiveId = parseInt(electiveSelect.value) || null;
+    if (!electiveId) {
+      showError('Please choose your elective subject.');
+      return;
+    }
+  }
+
+  enrollBtn.disabled = true;
+  enrollBtn.textContent = 'Setting up…';
+
+  const result = await api('/api/enroll', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      semester: sem,
+      course: document.getElementById('course-select').value,
+      elective_subject_id: electiveId,
+    }),
+  });
+
+  if (result && result.ok) {
+    window.location.href = '/dashboard';
+  } else {
+    showError('Something went wrong. Please try again.');
+    enrollBtn.disabled = false;
+    enrollBtn.textContent = 'Set up my dashboard →';
+  }
+});
+
+function showError(msg) {
+  formError.textContent = msg;
+  formError.style.display = 'block';
+}
+</script>
+</body>
+</html>

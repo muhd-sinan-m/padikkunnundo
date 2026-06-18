@@ -1,0 +1,11 @@
+# Development dependencies (uses SQLite — no PostgreSQL required).
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+authlib==1.3.1
+requests==2.32.3
+PyJWT==2.8.0
+python-dotenv==1.0.1
+
+# For production (AWS RDS / PostgreSQL), also install:
+#   pip install psycopg2-binary
+# Requires PostgreSQL client libraries. Not needed for local SQLite development.

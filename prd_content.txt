@@ -1,0 +1,162 @@
+﻿padikkunnundo.in
+Personal Academic Companion Platform
+Product Requirements Document (PRD)
+1. Executive Summary
+padikkunnundo.in is a personal academic companion web application built for students of Marian College Kuttikkanam. The platform centralizes three things every student needs during a semester: visibility into upcoming exams and high-priority topics, a live mark-tracking system tied to the college's actual CCA/SEA1/SEA2 grading scheme, and direct access to two existing sister platforms ΓÇö PYQPortal (previous year question papers) and a planned MCQ practice and placement preparation portal.
+The core differentiator of this project is the A+ Grade Calculator: a per-subject, per-student prediction engine that tells a student exactly how many marks they need in their final exam (SEA2) to reach an A+, A, B+, or Pass grade, based on marks they have already secured in their internal assessments and first semester exam. This removes a manual, error-prone, paper-based calculation that students currently do for themselves.
+This document defines the full product scope, the exact grading logic used by the college, the data model, the authentication approach, the technology stack, and the AWS infrastructure design (S3 and RDS) used to deliver the system.
+1.1 Problem Statement
+Students have no single place to see upcoming exam dates, important topics, and their own academic standing together.
+After CCA and SEA1 marks are released, students have no quick way to know what they need to score in the final exam (SEA2) to hit a target grade ΓÇö this is currently done manually, subject by subject, often incorrectly.
+Previous year question papers (already solved by PYQPortal) are disconnected from a student's day-to-day exam prep workflow.
+There is no personalized, ranked view of which subjects most urgently need attention before an exam.
+1.2 Goals
+Give every enrolled student a private, accurate, real-time view of their academic standing per subject.
+Automatically calculate the exact SEA2 marks required for A+, A, B+, and Pass grades for every subject a student is enrolled in.
+Rank subjects by how urgently they need attention, based on the gap between current marks and the A+ target.
+Provide one-click access to PYQPortal, an MCQ quiz platform, and a placement preparation portal, all under one ecosystem.
+Keep login friction at zero by using Google OAuth restricted to the college email domain, with a 30-day persistent session.
+1.3 Non-Goals (Out of Scope for v1)
+This platform does not replace the college's official examination or result management system. It is a personal companion tool, not a system of record.
+Email/password authentication is intentionally excluded ΓÇö Google OAuth is the only login method (see Section 5).
+Semester 5 and 6 subject mapping is pending and will be added once finalized by the author.
+The MCQ quiz platform and placement preparation portal are separate sister products; this PRD only defines how padikkunnundo.in links out to them, not their internal functionality.
+2. Target Users and Personas
+2.1 Primary User
+Marian College Kuttikkanam students, starting with BCA Cyber Security, with the data model designed to extend to other departments and colleges in future versions.
+2.2 Persona ΓÇö ΓÇ£The Anxious Pre-Exam StudentΓÇ¥
+Has just received CCA and SEA1 marks but doesn't know if they're on track for an A+.
+Manually does grade math on paper, often incorrectly, close to exam time.
+Wants to know which subject deserves the most attention in the limited days left before SEA2.
+Already uses PYQPortal for question papers but has no way to combine that with their own mark data.
+3. Academic Grading Model (Core Domain Logic)
+This is the most critical part of the system. Every calculation in the product is derived from the college's actual mark distribution rules, confirmed by the author. The system must implement this exactly ΓÇö it is the foundation of the A+ Calculator.
+3.1 Components of a Subject's Total Mark
+Every subject's total mark is split into three top-level components:
+CCA (Continuous Comprehensive Assessment) ΓÇö the internal component, itself split into four sub-components: ISA, CP, LB, and LD.
+SEA1 (Semester End Assessment 1) ΓÇö a smaller internal exam, distinct from the CCA sub-components.
+SEA2 (Semester End Assessment 2) ΓÇö the final exam. This is the only mark a student has not yet received at the time they use the calculator, and is therefore the value the system predicts/targets.
+Total Mark = CCA + SEA1 + SEA2
+3.1.1 CCA Sub-components
+CCA = ISA + CP + LB + LD
+3.2 Credit-Based Mark Distribution
+Each subject carries a credit value (2, 3, 4, or 5), and the total marks and the split between CCA / SEA1 / SEA2 / and the four CCA sub-components are entirely determined by that credit value. This is fixed college policy and does not vary by subject content ΓÇö only by credit weight.
+3.3 Grade Thresholds
+Grades are awarded as a percentage of the subject's total mark. The platform calculates the marks needed in SEA2 to reach each threshold, given marks already secured in CCA and SEA1.
+Worked Example ΓÇö 5 Credit Subject (e.g. DBMS)
+Total = 125, A+ target = 90% of 125 = 112.5. A student scores ISA 9, CP 8, LB 13, LD 12, SEA1 13.
+Secured so far = 9 + 8 + 13 + 12 + 13 = 55
+SEA2 needed for A+ = 112.5 ΓêÆ 55 = 57.5 out of a maximum of 60
+This is shown to the student as: ΓÇ£You need 57.5 / 60 in SEA2 for A+ ΓÇö very hard.ΓÇ¥
+3.5 Focus Priority / Difficulty Classification
+For every subject, the system converts the SEA2-needed value into a difficulty percentage relative to the SEA2 maximum, then classifies it. This produces the ranked ΓÇ£Focus PriorityΓÇ¥ list shown on the dashboard and notice panel.
+Subjects are sorted by descending difficulty so the most urgent subject always appears first in the Focus Priority panel. Subjects with no marks entered yet are shown separately with a neutral ΓÇ£no dataΓÇ¥ state and excluded from the ranking until the student enters at least one mark.
+4. Subjects, Credits, and Electives
+Subjects, their credit values, and elective groupings are fixed per semester by the institution and configured once by the admin (the author). A student does not type subject names manually ΓÇö they are assigned automatically on enrollment, with the exception of elective groups where the student makes a one-time selection.
+4.1 Semester 1
+4.2 Semester 2
+Note: the language elective group spans Semesters 1 and 2 together. A student's choice in Semester 1 automatically continues into Semester 2 ΓÇö it is not re-selected.
+4.3 Semester 3
+4.4 Semester 4
+Note: Semesters 5 and 6 subjects are not yet finalized and will be added to the system once provided. The subjects table schema (Section 6.2) is designed to accept these without structural changes.
+4.5 Enrollment Flow
+Student logs in for the first time via Google OAuth.
+Student selects their current semester and course (e.g. BCA Cyber Security, Semester 3).
+All core (non-elective) subjects for that semester are automatically assigned to the student's profile.
+If the semester has an elective group, the student is shown the available options and picks one.
+For elective groups that span two semesters (e.g. Sem 1ΓÇô2 language electives, Sem 3ΓÇô4 specialization electives), the choice made in the first semester automatically carries forward ΓÇö the student is not asked again.
+The dashboard loads with the student's exact subject list, each with its correct credit-based mark structure already applied.
+5. Authentication and Session Management
+5.1 Decision: Google OAuth Only
+After evaluating a dual email/password and Google OAuth approach, the final decision is Google OAuth only, restricted to the college email domain. This was chosen specifically to minimize friction for students ΓÇö no password resets, no email verification flows, no ΓÇ£forgot passwordΓÇ¥ support burden.
+5.2 Domain Restriction
+Only Google accounts on the college's email domain are permitted to sign in (e.g. accounts ending in the official Marian College domain).
+Personal Gmail or other personal email accounts are rejected at login with a clear message.
+Domain validation happens immediately after the OAuth callback, before any profile is created.
+5.3 Session Behavior
+On first login, a session token (JWT) is issued and stored in the browser.
+The session remains valid for 30 days. Within that window, the student is never shown a login screen ΓÇö opening the app goes straight to the dashboard.
+After 30 days, the session expires and the student is asked to sign in again with a single click ΓÇö no credentials to remember, since there is no password.
+Logging out manually clears the session immediately, regardless of the 30-day window.
+5.4 First-Time vs Returning User Flow
+6. Data Model
+The data model is fully relational and isolates every student's data by their unique account. No student can view or modify another student's marks or profile under any circumstance.
+6.1 users
+6.2 subjects
+Subjects are seeded once by the admin and shared across all students; they are not duplicated per student.
+6.3 enrollments
+Links a student to the specific subjects they are taking in a given semester, including their elective choice.
+6.4 marks
+Stores every mark component a student enters for a subject. SEA2 remains null until officially released ΓÇö it is never a student-entered field, since it is the value the system predicts.
+6.5 Entity Relationship Summary
+6.6 Scale Considerations
+At a pilot scale of roughly 120 students across 6ΓÇô8 subjects each, this produces under 1,500 rows across the marks and enrollments tables combined ΓÇö trivial for a managed relational database. The schema is designed to extend cleanly to multiple departments, multiple colleges, and thousands of students without structural changes, only additional rows.
+7. Feature Specification
+7.1 Dashboard (Home)
+Personalized greeting with the student's name, semester, and course.
+Three summary stat cards: subjects enrolled, marks entered (out of total subjects), and number of subjects currently on track for A+.
+Platform resource cards linking to PYQPortal, the MCQ quiz platform, and the placement preparation portal ΓÇö each opens in a new tab.
+A grid of all enrolled subjects for the current semester, each showing credit value, total marks, and a live progress indicator of how much mark data has been entered.
+A swipeable/dismissible notification panel (opened via a bell icon) containing three tabs: Notices, Focus Priority, and Upcoming Exams.
+7.2 My Marks
+One card per enrolled subject, showing the correct ISA / CP / LB / LD / SEA1 input fields with their credit-based maximums pre-filled as constraints.
+CCA total and ΓÇ£secured so farΓÇ¥ are computed and displayed instantly as the student types ΓÇö no save button or page reload required.
+A live result banner per subject showing the SEA2 marks needed for A+, color-coded by difficulty (Section 3.5).
+Secondary grade pills showing the requirement for A, B+, and Pass in the same view.
+A direct link to PYQPortal scoped to that subject, placed directly on the same card so a student moves from ΓÇ£what do I needΓÇ¥ to ΓÇ£let me practiceΓÇ¥ in one click.
+7.3 A+ Calculator (Standalone View)
+A focused version of the marks page intended for quick, exam-week use ΓÇö same underlying logic as Section 3.4, presented with minimal navigation so a student can check their numbers in seconds.
+7.4 Focus Priority
+Server-side computed ranking of every subject with at least one mark entered, sorted by difficulty (Section 3.5), surfaced on both the dashboard and the notification panel. This is what differentiates the product from a plain calculator ΓÇö it tells the student where to spend their limited remaining study time, personalized to their own numbers.
+7.5 Exam Schedule
+Displays upcoming SEA1/SEA2 dates per subject with a day-countdown.
+Subjects within 7 days are visually flagged as urgent.
+7.6 Important Topics
+Admin-curated, high-priority topic lists per subject, intended to guide last-minute revision.
+Each topic list links back to PYQPortal so a student can immediately find a previous paper covering that topic.
+7.7 Platform Ecosystem Links
+8. UI / UX Design
+8.1 Visual Identity
+The visual design deliberately reuses PYQPortal's exact design tokens so that padikkunnundo.in feels like a natural extension of the same ecosystem rather than a separate, disconnected product.
+8.2 Layout Principles
+Persistent left sidebar for primary navigation ΓÇö dashboard, marks, calculator, schedule, topics ΓÇö plus a distinct ΓÇ£PlatformsΓÇ¥ section for the three sister products.
+No secondary scrolling panel competing for space on the main view; the notice panel is hidden by default and opens on demand from the bell icon, dismissible by a close button or swipe gesture.
+Color is used functionally, not decoratively ΓÇö green/yellow/red consistently mean the same thing (on track / needs attention / critical) across every screen in the product.
+All mark inputs are constrained to their actual maximum (e.g. an ISA field for a 5-credit subject cannot exceed 10), preventing invalid data entry at the UI layer before it ever reaches the backend.
+8.3 Key Screens
+Login ΓÇö single Google sign-in button, explicit note on the college-domain restriction.
+Dashboard ΓÇö greeting, stats, platform links, subject grid, notification panel.
+My Marks ΓÇö per-subject input cards with live A+ calculation.
+A+ Calculator ΓÇö focused, distraction-free version of the same logic.
+9. Technical Architecture
+9.1 Technology Stack
+9.2 Why AWS RDS at This Scale
+At a pilot scale of approximately 120 students, the dataset (well under 2,000 rows across all tables) is trivial for RDS to serve ΓÇö read and write latency for a single student's data remains in the low milliseconds regardless of concurrent load. The choice is justified not by current scale but by architectural correctness: relational integrity between a student, their enrollments, and their marks is naturally expressed in a relational database, and the same schema scales cleanly to multiple departments and colleges without redesign.
+AWS RDS Free Tier covers 750 instance-hours per month (i.e. continuous uptime) and 20 GB of storage for 12 months, which comfortably covers the pilot phase at effectively no cost.
+9.3 AWS S3 Usage
+Reserved for any future file-based features (e.g. uploaded marksheet proofs, notes).
+Proposed key structure mirrors the academic hierarchy: college / course / semester / subject / file-type, matching the same organizational logic already used in the broader PYQPortal ecosystem.
+9.4 Backend Responsibilities
+Validate the Google OAuth callback and enforce college-domain restriction before creating or loading a user record.
+Issue and validate the 30-day JWT session.
+Expose REST endpoints for: fetching a student's enrolled subjects, reading/writing mark components, and computing A+/A/B+/Pass predictions server-side (so the calculation logic lives in one place, not duplicated in the frontend).
+Enforce that every marks query is scoped to the authenticated user's own user_id ΓÇö no student-facing endpoint may accept an arbitrary user_id parameter.
+10. Security and Data Isolation
+Authentication is delegated entirely to Google; the platform never stores or handles a password.
+Domain validation on every login attempt rejects non-college email addresses before any session is issued.
+All mark and enrollment data is strictly scoped server-side to the authenticated user's ID ΓÇö the frontend never determines which student's data is returned.
+JWTs are short-lived relative to their 30-day window in the sense that logout immediately invalidates the session client-side, and the backend can additionally maintain a denylist for explicit revocations if needed in a later phase.
+No sensitive personal data beyond name, college email, and academic marks is collected or stored.
+11. Roadmap and Open Items
+11.1 Pending Inputs (from the author)
+Remaining 4 language elective subjects for the Sem 1ΓÇô2 elective group.
+Remaining 3 specialization elective subjects for the Sem 3ΓÇô4 elective group.
+Full subject and credit list for Semesters 5 and 6.
+Exact exam date data source (manual admin entry vs. scraped/imported from a college calendar).
+Final curated ΓÇ£important topicsΓÇ¥ content per subject.
+11.2 Future Phases (Post-v1)
+Admin panel for the author to manage subjects, electives, exam dates, and important topics without direct database edits.
+Official SEA2 result import once released by the college, closing the loop between predicted and actual outcomes.
+Extension to other departments and, eventually, other colleges, using the same relational schema.
+Deeper integration with the MCQ quiz platform ΓÇö e.g. recommending quiz topics based on the Focus Priority ranking.
+11.3 Explicit Engineering Standard for This Build

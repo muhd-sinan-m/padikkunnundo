@@ -1,0 +1,151 @@
+﻿=== TABLE 1 ===
+Project Name || padikkunnundo.in
+Type || BCA Capstone Project (Academic Web Platform)
+Author || Muhammed Sinan M
+Institution || Marian College Kuttikkanam, Kerala ΓÇö BCA Cyber Security
+Related Platform || PYQPortal (pyqportal.app) ΓÇö previous year question paper repository built by the same author
+Document Version || v1.0
+Status || Draft ΓÇö Design Finalized, Pre-Development
+
+=== TABLE 2 ===
+Code || Full Name || Description
+ISA || Initial Summative Assessment || A small internal exam, typically the first mark a student receives in the semester.
+CP || Class Participation || Marks awarded for in-class engagement and attendance-linked participation.
+LB || Learning Beyond || Marks for work or learning activity beyond the standard syllabus.
+LD || Learning Deeper || Marks for deeper, more applied engagement with the subject's syllabus.
+
+=== TABLE 3 ===
+Credit || Total || CCA || ISA || CP || LB || LD || SEA1 || SEA2
+5 || 125 || 50 || 10 || 10 || 15 || 15 || 15 || 60
+4 || 100 || 40 || 10 || 10 || 10 || 10 || 20 || 40
+3 || 75 || 30 || 7.5 || 7.5 || 7.5 || 7.5 || 15 || 30
+2 || 50 || 20 || 5 || 5 || 5 || 5 || 10 || 20
+
+=== TABLE 4 ===
+Grade || Threshold (% of Total)
+A+ || 90%
+A || 80%
+B+ || 70%
+Pass || 40%
+
+=== TABLE 5 ===
+3.4 A+ Calculator ΓÇö Core Formula | Secured So Far = ISA + CP + LB + LD + SEA1 | Target (for a given grade) = Total Marks ├ù Grade Percentage | SEA2 Marks Needed = Target ΓêÆ Secured So Far |  | Feasibility check: | If SEA2 Marks Needed Γëñ 0 ΓåÆ grade is already secured, regardless of SEA2 performance. | If SEA2 Marks Needed > SEA2 Maximum ΓåÆ grade is mathematically not achievable. | Otherwise ΓåÆ show the required marks with a difficulty indicator (see 3.5).
+
+=== TABLE 6 ===
+Difficulty (SEA2 needed ├╖ SEA2 max) || Classification || Indicator
+0% ΓÇô 40% || Easy / On track || Green
+40% ΓÇô 65% || Needs attention || Yellow
+65% ΓÇô 90% || Critical / Focus here || Red
+90%+ or exceeds SEA2 max || Not mathematically achievable || Grey / flagged
+
+=== TABLE 7 ===
+Subject || Credit || Type
+Discrete Mathematics || 4 || Core
+Digital Fundamentals || 4 || Core
+Fundamentals of Programming Using C++ || 4 || Core
+English for Science || 3 || Core
+Cyber Laws and Security || 3 || Core
+Language Elective (6 options incl. Spanish 1, French 1 ΓÇö remaining 4 pending) || 3 || Elective ┬╖ pick 1 of 6
+
+=== TABLE 8 ===
+Subject || Credit || Type
+Indian Constitution: Legal and Ethical Perspectives || 2 || Core
+Web Technology || 4 || Core
+Operating Systems || 5 || Core
+Data Structures || 4 || Core
+Mathematics || 3 || Core
+AEC ΓÇö English || 3 || Core
+Language Elective ΓÇö same group as Sem 1 (continues Spanish 2 / French 2 / etc.) || 3 || Elective ┬╖ carried over from Sem 1
+
+=== TABLE 9 ===
+Subject || Credit || Type
+Python || 4 || Core
+DBMS || 5 || Core
+Design and Algorithm || 3 || Core
+Software Engineering || 3 || Core
+Quantitative Techniques || 4 || Core
+Specialization Elective ΓÇö Feature Engineering + 3 others (pending) || 3 || Elective ┬╖ pick 1 of 4
+
+=== TABLE 10 ===
+Subject || Credit || Type
+Object Oriented Programming Using Java || 5 || Core
+Design Thinking and Innovation || 3 || Core
+Entrepreneurship and Startup Ecosystem || 2 || Core
+Probability Distributions and Statistical Inference || 4 || Core
+Artificial Intelligence || 5 || Core
+Specialization Elective ΓÇö same group as Sem 3 (Network Simulation / Intro to ML / 2 others pending) || 3 || Elective ┬╖ carried over from Sem 3
+
+=== TABLE 11 ===
+Step || First-time student || Returning student (within 30 days)
+Opens app || Sees login screen || Goes straight to dashboard
+Login action || Clicks ΓÇ£Continue with GoogleΓÇ¥, picks college account || None ΓÇö already authenticated
+Onboarding || Selects semester and elective (if applicable) || Not shown again
+Result || Profile created, subjects auto-assigned, lands on dashboard || Lands on dashboard immediately
+
+=== TABLE 12 ===
+Field || Type || Description
+id || Integer (PK) || Unique internal identifier.
+email || String (unique) || College Google account email ΓÇö the student's unique identity.
+name || String || Display name, pulled from the Google profile.
+semester || Integer || Current semester, set during onboarding and editable later.
+course || String || e.g. ΓÇ£BCA Cyber SecurityΓÇ¥.
+college || String || Derived automatically from the email domain.
+created_at || Timestamp || Account creation time.
+
+=== TABLE 13 ===
+Field || Type || Description
+subject_id || Integer (PK) || Unique subject identifier.
+subject_name || String || e.g. ΓÇ£DBMSΓÇ¥.
+semester || Integer || Semester this subject belongs to.
+credit || Decimal || 2 / 3 / 4 / 5 ΓÇö determines the full mark structure via Section 3.2.
+is_elective || Boolean || Whether this subject is part of an elective group.
+elective_group || String (nullable) || Identifier linking subjects that belong to the same elective choice (e.g. shared across Sem 1 and Sem 2 for languages).
+
+=== TABLE 14 ===
+Field || Type || Description
+id || Integer (PK) || Unique identifier.
+user_id || Integer (FK ΓåÆ users.id) || Which student.
+subject_id || Integer (FK ΓåÆ subjects.subject_id) || Which subject.
+semester || Integer || Semester this enrollment record applies to.
+
+=== TABLE 15 ===
+Field || Type || Description
+id || Integer (PK) || Unique identifier.
+user_id || Integer (FK) || Which student this mark belongs to.
+subject_id || Integer (FK) || Which subject.
+isa, cp, lb, ld || Decimal (nullable) || The four CCA sub-component marks, entered by the student as released.
+sea1 || Decimal (nullable) || SEA1 mark, entered by the student.
+sea2 || Decimal (nullable) || Final exam mark ΓÇö left null in this version; reserved for a future phase where official results could be imported.
+updated_at || Timestamp || Last time any mark was changed.
+
+=== TABLE 16 ===
+Relationship Overview | users (1) ΓÇö (many) enrollments (many) ΓÇö (1) subjects | users (1) ΓÇö (many) marks (many) ΓÇö (1) subjects | Every marks row is uniquely scoped to one user_id + subject_id pair. | A query for a logged-in student's data always filters strictly by WHERE user_id = current_user.id ΓÇö this is the isolation boundary that keeps every student's data private.
+
+=== TABLE 17 ===
+Platform || Purpose || Subdomain
+PYQPortal || Previous year question paper repository (existing, live product) || pyqportal.app
+MCQ Quiz || Subject-wise multiple choice practice and self-testing || quiz.pyqportal.app
+Placement Prep || Aptitude, coding, and interview preparation resources || placement.pyqportal.app
+
+=== TABLE 18 ===
+Token || Hex || Usage
+Primary Blue || #2563EB || Primary actions, links, active states
+Primary Purple || #7C3AED || Secondary accents
+Primary Dark || #1E40AF || Sidebar background, headers
+Accent Green || #10B981 || Success / on-track states
+Accent Orange || #F59E0B || Warning / needs-attention states
+Accent Red || #EF4444 || Critical / urgent states
+Gray scale (50ΓÇô900) || #F9FAFB ΓÇô #111827 || Backgrounds, borders, text hierarchy
+
+=== TABLE 19 ===
+Layer || Choice || Rationale
+Frontend || HTML, CSS, vanilla JavaScript || Matches the author's existing skill set and PYQPortal's own foundation; avoids introducing an unfamiliar framework purely for this capstone.
+Backend || Flask (Python) || Already used across the author's other projects; fast to extend with REST routes for marks, enrollment, and predictions.
+Authentication || Google OAuth 2.0, domain-restricted || Removes password-related friction entirely; see Section 5.
+Primary Database || AWS RDS (PostgreSQL) || Enforces relational integrity between users, subjects, enrollments, and marks; demonstrates production-grade infrastructure choices for the capstone evaluation.
+File Storage || AWS S3 || Reserved for future document storage (e.g. uploaded notes, marksheet proofs) using a per-college/department/semester key structure.
+Session Handling || JWT, 30-day expiry || Stateless, scalable session validation without server-side session storage.
+
+=== TABLE 20 ===
+Build Quality Expectation | This project is being built as a deliberate, specified system, not an improvised or unstructured build. | Every grading rule implemented in code must trace back directly to Section 3 of this document ΓÇö no invented thresholds or guessed mark splits. | The data model in Section 6 is the single source of truth for schema design; ad-hoc fields should not be introduced without updating this document first. | UI states (loading, empty/no-marks-yet, error, and computed states) must all be explicitly handled per Section 7 and Section 8 ΓÇö not left as an afterthought. | This PRD itself is the artifact that should be referenced in the capstone report to demonstrate that the system was designed before it was built.
+

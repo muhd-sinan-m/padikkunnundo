@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Schedule — padikkunnundo.in{% endblock %}
+{% block description %}Upcoming SEA1 and SEA2 exam dates for your enrolled subjects, with day countdowns.{% endblock %}
+{% block page_title %}Exam Schedule{% endblock %}
+
+{% set active_page = 'schedule' %}
+
+{% block content %}
+<!--
+  Section 7.5 — Exam Schedule.
+  Displays upcoming SEA1/SEA2 dates with a day-countdown.
+  Subjects within 7 days are flagged as urgent.
+-->
+<div id="schedule-container">
+  <!-- Populated by app.js after calling /api/schedule -->
+  <div class="empty-state" id="schedule-loading">
+    <div class="empty-state-icon">⏳</div>
+    <div class="empty-state-title">Loading schedule…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Exam Schedule page — Section 7.5 */
+
+(async function () {
+  const container = document.getElementById('schedule-container');
+  const data = await api('/api/schedule');
+
+  if (!data) {
+    container.innerHTML = renderEmpty('⚠️', 'Could not load schedule', 'Please try refreshing the page.');
+    return;
+  }
+
+  if (!data.schedule || data.schedule.length === 0) {
+    container.innerHTML = renderEmpty(
+      '📅',
+      'No exam dates published yet',
+      data.message || 'Exam dates will appear here once published by the admin.'
+    );
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const items = data.schedule
+    .map(item => {
+      const examDate = new Date(item.date);
+      examDate.setHours(0, 0, 0, 0);
+      const daysLeft = Math.round((examDate - today) / 86400000);
+      return { ...item, daysLeft, examDate };
+    })
+    .filter(item => item.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+  if (items.length === 0) {
+    container.innerHTML = renderEmpty('✅', 'No upcoming exams', 'All scheduled exams have passed.');
+    return;
+  }
+
+  container.innerHTML = items.map(item => {
+    const urgent  = item.daysLeft <= 7;
+    const monthAb = item.examDate.toLocaleString('en-GB', { month: 'short' });
+    const dayNum  = item.examDate.getDate();
+    const countdown = item.daysLeft === 0
+      ? 'Today'
+      : item.daysLeft === 1
+        ? 'Tomorrow'
+        : `${item.daysLeft} days left`;
+
+    return `
+      <div class="schedule-item ${urgent ? 'urgent' : ''}" id="schedule-item-${item.subject_id}">
+        <div class="schedule-date-box">
+          <div class="schedule-date-day">${dayNum}</div>
+          <div class="schedule-date-month">${monthAb}</div>
+        </div>
+        <div class="schedule-info">
+          <div class="schedule-subject">${escHtml(item.subject_name)}</div>
+          <div class="schedule-type">${escHtml(item.type)}</div>
+        </div>
+        <div class="schedule-countdown ${urgent ? 'urgent' : 'normal'}">${countdown}</div>
+      </div>
+    `;
+  }).join('');
+
+})();
+
+function renderEmpty(icon, title, desc) {
+  return `
+    <div class="empty-state">
+      <div class="empty-state-icon">${icon}</div>
+      <div class="empty-state-title">${title}</div>
+      <div class="empty-state-desc">${desc}</div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+</script>
+{% endblock %}

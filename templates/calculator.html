@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}A+ Calculator — padikkunnundo.in{% endblock %}
+{% block description %}Find out exactly what you need in SEA2 to hit your target grade. Focused, fast, distraction-free.{% endblock %}
+{% block page_title %}A+ Calculator{% endblock %}
+
+{% set active_page = 'calculator' %}
+
+{% block content %}
+<!--
+  Section 7.3 — A+ Calculator (Standalone View).
+  A focused version of the marks page intended for quick, exam-week use.
+  Same underlying logic as Section 3.4, presented with minimal navigation
+  so a student can check their numbers in seconds.
+-->
+<div class="calculator-page" id="calculator-page">
+
+  <!-- Subject picker -->
+  <div class="calc-card" id="calc-picker-card">
+    <div class="calc-card-header">
+      <div class="calc-card-title">A+ Grade Calculator</div>
+      <div class="calc-card-sub">Section 3.4 — exact college grading formula</div>
+    </div>
+    <div class="calc-card-body">
+      <label class="form-label" for="calc-subject-select" style="margin-bottom:var(--space-2); display:block;">
+        Choose a subject
+      </label>
+      <select class="calc-select" id="calc-subject-select">
+        <option value="" disabled selected>Select a subject…</option>
+      </select>
+
+      <!-- Inputs — shown once a subject is selected -->
+      <div id="calc-inputs" style="display:none;">
+
+        <div class="mark-inputs-grid" id="calc-inputs-grid">
+          <!-- Populated by calculator.js based on credit structure -->
+        </div>
+
+        <!-- Live secured total -->
+        <div class="mark-secured-row">
+          <span class="mark-secured-label">Secured so far (CCA + SEA1)</span>
+          <span class="mark-secured-value" id="calc-secured">0</span>
+        </div>
+
+        <!-- A+ result banner -->
+        <div id="calc-banner" class="grade-banner status-grey" style="display:none;">
+          <div>
+            <div class="grade-banner-main" id="calc-banner-main">—</div>
+            <div class="grade-banner-sub" id="calc-banner-sub">—</div>
+          </div>
+        </div>
+
+        <!-- Secondary grade pills for A, B+, Pass -->
+        <div class="grade-pills" id="calc-pills" style="display:none; margin-top:var(--space-3);"></div>
+
+      </div><!-- /calc-inputs -->
+    </div>
+  </div>
+
+  <!-- Formula reference card -->
+  <div class="calc-card" id="calc-formula-card">
+    <div class="calc-card-header">
+      <div class="calc-card-title">How the calculation works</div>
+    </div>
+    <div class="calc-card-body" style="font-size:13px; color:var(--gray-600); line-height:1.8;">
+      <p><strong>Secured So Far</strong> = ISA + CP + LB + LD + SEA1</p>
+      <p><strong>Target</strong> = Total Marks × Grade %</p>
+      <p><strong>SEA2 Needed</strong> = Target − Secured So Far</p>
+      <p style="margin-top:var(--space-4);">
+        If SEA2 Needed ≤ 0 → grade is <span style="color:var(--color-green);font-weight:600;">already secured</span>.<br>
+        If SEA2 Needed &gt; SEA2 Max → grade is <span style="color:var(--gray-500);font-weight:600;">not achievable</span>.<br>
+        Otherwise → shown with a difficulty indicator.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/calculator.js') }}"></script>
+{% endblock %}

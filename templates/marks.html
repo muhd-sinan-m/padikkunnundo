@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}My Marks — padikkunnundo.in{% endblock %}
+{% block description %}Enter your CCA and SEA1 marks and see exactly what you need in SEA2 for A+, A, B+, or Pass.{% endblock %}
+{% block page_title %}My Marks{% endblock %}
+
+{% set active_page = 'marks' %}
+
+{% block content %}
+<!--
+  Section 7.2 — My Marks.
+  One card per enrolled subject.
+  Each card shows:
+    • ISA / CP / LB / LD / SEA1 inputs with credit-based maximums pre-filled.
+    • Live CCA total and "secured so far" (updates on every keystroke).
+    • A+ result banner, color-coded by difficulty (Section 3.5).
+    • Secondary grade pills for A, B+, Pass.
+    • Direct PYQPortal link for the subject.
+-->
+<div class="marks-list" id="marks-list">
+  <div class="empty-state">
+    <div class="empty-state-icon">⏳</div>
+    <div class="empty-state-title">Loading your subjects…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/marks.js') }}"></script>
+{% endblock %}

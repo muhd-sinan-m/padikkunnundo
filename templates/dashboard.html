@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — padikkunnundo.in{% endblock %}
+{% block description %}Your academic dashboard — marks, grade targets, and exam preparation for {{ user.name }}.{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% set active_page = 'dashboard' %}
+
+{% block content %}
+<!-- Section 7.1 — Dashboard -->
+
+<!-- Personalized greeting (Section 7.1) -->
+<section class="welcome-banner dashboard-welcome">
+  <div class="welcome-banner-content">
+    <div class="welcome-banner-date">Today • {{ user.course }}</div>
+    <h1 class="welcome-banner-heading" id="greeting-text">
+      Welcome back, {{ user.name.split()[0] if user.name else 'Student' }}
+    </h1>
+    <div class="welcome-banner-sub" id="user-context">
+      Semester {{ user.semester }} • Ready to check your progress?
+    </div>
+  </div>
+  <div class="welcome-banner-illustration">
+    <div class="student-photo-bubble" aria-hidden="true">
+      <span>🧑‍🎓</span>
+    </div>
+  </div>
+</section>
+
+<!-- Three summary stat cards (Section 7.1) -->
+<div class="stats-grid" id="stats-grid">
+  <!-- Skeleton placeholders while data loads -->
+  <div class="stat-card">
+    <div class="stat-card-icon blue" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+    </div>
+    <div class="stat-card-value" id="stat-total">—</div>
+    <div class="stat-card-label">Subjects Enrolled</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon amber" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div class="stat-card-value" id="stat-entered">—</div>
+    <div class="stat-card-label">Marks Entered</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon green" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="stat-card-value" id="stat-on-track">—</div>
+    <div class="stat-card-label">On Track for A+</div>
+  </div>
+</div>
+
+<!-- Platform resource cards (Section 7.7) — one click to sister platforms -->
+<div class="section-heading">Quick Access</div>
+<div class="platforms-grid">
+  <a href="{{ platforms.pyqportal }}" target="_blank" rel="noopener" class="platform-card" id="card-pyqportal">
+    <div class="platform-card-icon pyq" aria-hidden="true">📄</div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">PYQPortal</div>
+      <div class="platform-card-desc">Previous year question papers</div>
+    </div>
+  </a>
+  <a href="{{ platforms.mcq_quiz }}" target="_blank" rel="noopener" class="platform-card" id="card-mcq">
+    <div class="platform-card-icon mcq" aria-hidden="true">🎯</div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">MCQ Quiz</div>
+      <div class="platform-card-desc">Subject-wise practice tests</div>
+    </div>
+  </a>
+  <a href="{{ platforms.placement }}" target="_blank" rel="noopener" class="platform-card" id="card-placement">
+    <div class="platform-card-icon place" aria-hidden="true">💼</div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">Placement Prep</div>
+      <div class="platform-card-desc">Aptitude, coding, and interviews</div>
+    </div>
+  </a>
+</div>
+
+<!-- Subject grid (Section 7.1) — enrolled subjects with progress indicators -->
+<div class="section-heading">Enrolled Subjects — Semester {{ user.semester }}</div>
+<div class="subjects-grid" id="subjects-grid">
+  <!-- Populated by dashboard.js -->
+  <div style="grid-column:1/-1;" class="empty-state">
+    <div class="empty-state-icon">⏳</div>
+    <div class="empty-state-title">Loading your subjects…</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
