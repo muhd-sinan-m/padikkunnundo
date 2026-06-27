@@ -50,6 +50,10 @@ class Config:
     RATELIMIT_STORAGE_URL: str = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
     RATELIMIT_STRATEGY: str = "fixed-window"
 
+
+    RATELIMIT_STORAGE_URL: str = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
+    RATELIMIT_STRATEGY: str = "fixed-window"
+    RATELIMIT_ENABLED: bool = True
     # ── Email / Password Reset (Resend API) ───────────────────────────────────
     RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
     MAIL_FROM: str = os.environ.get("MAIL_FROM", "noreply@padikkunnundo.app")

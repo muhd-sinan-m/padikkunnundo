@@ -26,7 +26,6 @@ from routes import api_bp, auth_bp, pages_bp
 from routes.admin import admin_bp
 from routes.auth import init_oauth, init_limiter
 
-load_dotenv()
 
 
 def create_app(config_class=Config) -> Flask:
@@ -97,4 +96,4 @@ def create_app(config_class=Config) -> Flask:
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
