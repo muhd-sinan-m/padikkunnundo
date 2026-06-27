@@ -49,3 +49,7 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
+# ── Utility / debug scripts ───────────────────────────────────────────────────
+check_schema.py
+fix_blanks.py
+gen_about.py
