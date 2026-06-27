@@ -1,4 +1,4 @@
-# padikkunnundo.in
+# padikkunnundo.app
 
 Personal Academic Companion Platform for Marian College Kuttikkanam students.
 

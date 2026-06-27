@@ -3,77 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Set Up Your Profile — padikkunnundo.in</title>
+  <title>Set Up Your Profile — padikkunnundo.app</title>
   <meta name="description" content="Choose your semester and elective to get your personalised academic dashboard.">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
+<body class="onboarding-body">
 
-<div class="onboarding-page">
-  <div class="onboarding-card">
+<div class="onboarding-shell">
 
-    <h1 class="onboarding-heading">Set up your profile</h1>
-    <p class="onboarding-subheading">
-      Welcome, {{ user.name.split()[0] }}! Tell us which semester you're in
-      so we can assign your subjects and mark structure automatically.
-    </p>
+  <!-- Left: Form -->
+  <div class="onboarding-form-col">
+    <div class="onboarding-card">
+      <h1 class="onboarding-heading">Set up your profile</h1>
+      <p class="onboarding-subheading">
+        Welcome, {{ user.name.split()[0] }}! Tell us which semester you're in
+        so we can assign your subjects and mark structure automatically.
+      </p>
 
-    <form id="onboarding-form" novalidate>
+      <form id="onboarding-form" novalidate>
 
-      <!-- Course (fixed for now — BCA Cyber Security) -->
-      <div class="form-group">
-        <label class="form-label" for="course-select">Course</label>
-        <select class="form-select" id="course-select" name="course">
-          <option value="BCA Cyber Security" selected>BCA Cyber Security</option>
-        </select>
-      </div>
-
-      <!-- Semester (Section 4.5 — student selects current semester) -->
-      <div class="form-group">
-        <label class="form-label" for="semester-select">Current Semester</label>
-        <select class="form-select" id="semester-select" name="semester" required>
-          <option value="" disabled selected>Select your semester…</option>
-          <option value="1">Semester 1</option>
-          <option value="2">Semester 2</option>
-          <option value="3">Semester 3</option>
-          <option value="4">Semester 4</option>
-        </select>
-      </div>
-
-      <!--
-        Elective selection (Section 4.5):
-        Shown only when the selected semester has an elective group.
-        For Sem 1 → language elective.
-        For Sem 3 → specialization elective.
-        For Sem 2 / 4 → elective is automatically carried over from Sem 1 / 3.
-      -->
-      <div class="elective-section" id="elective-section" style="display:none;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" for="elective-select" id="elective-label">Choose your elective</label>
-          <select class="form-select" id="elective-select" name="elective_subject_id">
-            <option value="" disabled selected>Select an elective…</option>
+        <!-- Course (fixed for now — BCA) -->
+        <div class="form-group">
+          <label class="form-label" for="course-select">Course</label>
+          <select class="form-select" id="course-select" name="course">
+            <option value="BCA" selected>BCA</option>
           </select>
-          <p class="elective-note" id="elective-note"></p>
         </div>
-      </div>
 
-      <!-- Carried-over notice for Sem 2 / 4 -->
-      <div class="elective-section" id="carryover-section" style="display:none;">
-        <p style="font-size:13px; color:var(--gray-600);">
-          <strong>Elective note:</strong> <span id="carryover-text"></span>
-          Your elective from the previous semester continues automatically — you won't be asked again.
-        </p>
-      </div>
+        <!-- Semester (Section 4.5 — student selects current semester) -->
+        <div class="form-group">
+          <label class="form-label" for="semester-select">Current Semester</label>
+          <select class="form-select" id="semester-select" name="semester" required>
+            <option value="" disabled selected>Select your semester…</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
 
-      <div id="form-error" style="display:none; margin-top:var(--space-4);" class="login-error" role="alert"></div>
+          </select>
+        </div>
 
-      <button type="submit" class="btn-primary" id="enroll-btn">
-        Set up my dashboard →
-      </button>
+        <!--
+          Elective selection (Section 4.5):
+          Sem 1 → language elective.
+          Sem 2 → carried over.
+          Sem 3 → specialization elective.
+          Sem 4 → specialization elective (student can continue or change).
 
-    </form>
+          Sem 5 → professional electives (exactly 3 checkboxes) handled by #pe-section.
+        -->
 
+        <!-- Sem 1/3/4 elective select (unchanged flow) -->
+        <div class="elective-section" id="elective-section" style="display:none;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="elective-select" id="elective-label">Choose your elective</label>
+            <select class="form-select" id="elective-select" name="elective_subject_id">
+              <option value="" disabled selected>Select an elective…</option>
+            </select>
+            <p class="elective-note" id="elective-note"></p>
+          </div>
+        </div>
+
+        <!-- Carried-over notice for Sem 2 (unchanged flow) -->
+        <div class="elective-section" id="carryover-section" style="display:none;">
+          <div class="carryover-notice">
+            <strong>Elective note:</strong> <span id="carryover-text"></span>
+            Your elective from the previous semester continues automatically — you won't be asked again.
+          </div>
+        </div>
+
+        <!-- Sem 5 professional electives (new) -->
+        <div class="elective-section" id="pe-section" style="display:none; margin-bottom:var(--spacing-lg);">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" id="pe-label">Professional Electives (Sem 5)</label>
+
+            <div class="pe-counter" id="pe-counter" style="margin-top:var(--spacing-sm); font-weight:800; color:var(--text-secondary);">
+              0 of 3 selected
+            </div>
+
+            <!-- Exactly one per specialization dropdown (3 total) -->
+            <div class="pe-grid" id="pe-grid" style="margin-top:var(--spacing-md);">
+              <div class="pe-col">
+                <div class="pe-specialization">Specialization Group 1</div>
+                <div class="pe-option-list">
+                  <select class="form-select" id="pe-group-1-select">
+                    <option value="" disabled selected>Select one from Group 1…</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pe-col">
+                <div class="pe-specialization">Specialization Group 2</div>
+                <div class="pe-option-list">
+                  <select class="form-select" id="pe-group-2-select">
+                    <option value="" disabled selected>Select one from Group 2…</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pe-col">
+                <div class="pe-specialization">Specialization Group 3</div>
+                <div class="pe-option-list">
+                  <select class="form-select" id="pe-group-3-select">
+                    <option value="" disabled selected>Select one from Group 3…</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <p class="elective-note" id="pe-note" style="margin-bottom:0;">
+              Choose exactly 3 electives: one from each specialization group.
+            </p>
+          </div>
+        </div>
+
+
+        <div id="form-error" style="display:none; margin-top:var(--space-4);" class="login-error" role="alert"></div>
+
+        <button type="submit" class="btn-primary" id="enroll-btn">
+          Set up my dashboard →
+        </button>
+
+      </form>
+    </div>
   </div>
+
+  <!-- Right: Image -->
+  <div class="onboarding-visual-col">
+    <div class="onboarding-visual-placeholder" id="onboarding-visual">
+      <img src="{{ url_for('static', filename='img/padikkunnundo_nobg_home.webp') }}" 
+           alt="Padikkunnundo illustration" 
+           class="onboarding-visual-img">
+    </div>
+  </div>
+
 </div>
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
@@ -91,23 +158,49 @@ const form            = document.getElementById('onboarding-form');
 const enrollBtn       = document.getElementById('enroll-btn');
 const formError       = document.getElementById('form-error');
 
-semesterSelect.addEventListener('change', async () => {
-  const sem = parseInt(semesterSelect.value);
-  electiveSection.style.display  = 'none';
-  carryoverSection.style.display = 'none';
+  const peSection   = document.getElementById('pe-section');
+  const peGrid      = document.getElementById('pe-grid');
+  const peCounterEl = document.getElementById('pe-counter');
+  const peNote      = document.getElementById('pe-note');
 
-  // Section 4.5: Sem 1 → language elective, Sem 3 → specialization elective.
-  // Sem 2 and 4 → carried over, not re-selected.
-  if (sem === 1 || sem === 3) {
-    await loadElectives(sem);
-  } else if (sem === 2) {
-    carryoverText.textContent = 'Your language elective (Spanish/French/etc.) from Semester 1 continues.';
-    carryoverSection.style.display = 'block';
-  } else if (sem === 4) {
-    carryoverText.textContent = 'Your specialization elective from Semester 3 continues.';
-    carryoverSection.style.display = 'block';
-  }
-});
+  semesterSelect.addEventListener('change', async () => {
+    const sem = parseInt(semesterSelect.value);
+    // Hide sections before determining what to show
+    electiveSection.style.display = 'none';
+    carryoverSection.style.display = 'none';
+    peSection.style.display = 'none';
+
+    // Disable submit button while loading
+    enrollBtn.disabled = true;
+    enrollBtn.textContent = 'Loading…';
+
+    // Reset form state
+    if (sem === 5) {
+      resetPeSelection();
+    }
+
+    // Section 4.5: Sem 1 → language elective, Sem 3 → specialization elective.
+    // Sem 2 → carried over, not re-selected.
+    // Sem 4 → student can choose to continue or change elective.
+    if (sem === 1 || sem === 3 || sem === 4) {
+      await loadElectives(sem);
+      enrollBtn.disabled = false;
+      enrollBtn.textContent = 'Set up my dashboard →';
+    } else if (sem === 2) {
+      carryoverText.textContent = 'Your language elective (Spanish/French/etc.) from Semester 1 continues.';
+      carryoverSection.style.display = 'block';
+      enrollBtn.disabled = false;
+      enrollBtn.textContent = 'Set up my dashboard →';
+    } else if (sem === 5) {
+      await loadProfessionalElectives(5);
+      // Button gating handled by counter updates
+    } else {
+      // Should not happen due to required dropdown, but keep safe.
+      enrollBtn.disabled = false;
+      enrollBtn.textContent = 'Set up my dashboard →';
+    }
+  });
+
 
 async function loadElectives(semester) {
   const data = await api('/api/electives/' + semester);
@@ -130,10 +223,126 @@ async function loadElectives(semester) {
     electiveLabel.textContent = 'Specialization Elective';
     electiveNote.textContent  =
       'Your choice here carries forward automatically to Semester 4.';
+  } else if (semester === 4) {
+    electiveLabel.textContent = 'Specialization Elective';
+    electiveNote.textContent  =
+      'Choose your specialization elective for Semester 4. You can continue with your previous elective or select a new one.';
   }
 
   electiveSection.style.display = 'block';
 }
+
+const peGroup1Select = document.getElementById('pe-group-1-select');
+const peGroup2Select = document.getElementById('pe-group-2-select');
+const peGroup3Select = document.getElementById('pe-group-3-select');
+
+function resetPeSelection() {
+  if (peGroup1Select) peGroup1Select.value = '';
+  if (peGroup2Select) peGroup2Select.value = '';
+  if (peGroup3Select) peGroup3Select.value = '';
+
+  updatePeCounter(0);
+  setPeSubmitEnabled(false);
+}
+
+function updatePeCounter(selectedCount) {
+  if (!peCounterEl) return;
+
+  const max = 3;
+  const exactlyThree = selectedCount === max;
+  if (exactlyThree) {
+    peCounterEl.textContent = `✓ ${max} selected`;
+    peCounterEl.style.color = 'var(--color-green)';
+  } else {
+    peCounterEl.textContent = `${selectedCount} of ${max} selected`;
+    peCounterEl.style.color = 'var(--text-secondary)';
+  }
+}
+
+function setPeSubmitEnabled(enabled) {
+  enrollBtn.disabled = !enabled;
+  enrollBtn.textContent = enabled ? 'Set up my dashboard →' : 'Select 3 electives to continue';
+}
+
+function getSelectedCountFromGroups() {
+  const v1 = peGroup1Select ? peGroup1Select.value : '';
+  const v2 = peGroup2Select ? peGroup2Select.value : '';
+  const v3 = peGroup3Select ? peGroup3Select.value : '';
+  return [v1, v2, v3].filter(v => v).length;
+}
+
+function updatePeSelectionRulesForDropdowns() {
+  const selectedCount = getSelectedCountFromGroups();
+  updatePeCounter(selectedCount);
+  setPeSubmitEnabled(selectedCount === 3);
+}
+
+async function loadProfessionalElectives(semester) {
+  const data = await api('/api/electives/' + semester);
+  if (!data || !data.electives || data.electives.length === 0) return;
+
+  const groups = {
+    g1: [], // Intro to Data Science, Deep Learning, Ethical Hacking, Python - Django/Flask
+    g2: [], // Time Series Analysis, Digital Image Processing, Cloud Security, Dart and Flutter
+    g3: [], // Machine Learning, NLP, IoT Security, React.js
+  };
+
+  data.electives.forEach(el => {
+    const n = (el.subject_name || '').toLowerCase();
+
+    const isDs = n.includes('introduction to data science');
+    const isDeep = n.includes('introduction to deep learning') || n.includes('deep learning');
+    const isEth = n.includes('ethical hacking');
+    const isPythonWeb = n.includes('web development with python') || n.includes('django') || n.includes('flask');
+
+    const isTimeSeries = n.includes('time series analysis');
+    const isDigitalImage = n.includes('digital image processing');
+    const isCloud = n.includes('cloud security');
+    const isDartFlutter = n.includes('dart') || n.includes('flutter');
+
+    const isMl = n.includes('machine learning');
+    const isNlp = n.includes('natural language processing');
+    const isIot = n.includes('iot security');
+    const isReact = n.includes('react.js') || n.includes('react');
+
+    if (isDs || isDeep || isEth || isPythonWeb) groups.g1.push(el);
+    else if (isTimeSeries || isDigitalImage || isCloud || isDartFlutter) groups.g2.push(el);
+    else if (isMl || isNlp || isIot || isReact) groups.g3.push(el);
+    else groups.g1.push(el); // safe fallback
+  });
+
+  function fillSelect(selectEl, items, placeholderText) {
+    if (!selectEl) return;
+    selectEl.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = placeholderText;
+    selectEl.appendChild(placeholder);
+
+    items.forEach(el => {
+      const opt = document.createElement('option');
+      opt.value = el.subject_id;
+      opt.textContent = el.subject_name; // full subject name
+      selectEl.appendChild(opt);
+    });
+  }
+
+  fillSelect(peGroup1Select, groups.g1, 'Select one from Group 1…');
+  fillSelect(peGroup2Select, groups.g2, 'Select one from Group 2…');
+  fillSelect(peGroup3Select, groups.g3, 'Select one from Group 3…');
+
+  // Attach change listeners once the selects are populated.
+  [peGroup1Select, peGroup2Select, peGroup3Select].forEach(sel => {
+    if (sel) sel.addEventListener('change', updatePeSelectionRulesForDropdowns);
+  });
+
+  peSection.style.display = 'block';
+  updatePeSelectionRulesForDropdowns();
+}
+
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -146,8 +355,48 @@ form.addEventListener('submit', async (e) => {
   }
 
   const sem = semester;
+
+  // Sem 5: collect 3 dropdown selections (one per specialization group)
+  if (sem === 5) {
+    const v1 = peGroup1Select ? peGroup1Select.value : '';
+    const v2 = peGroup2Select ? peGroup2Select.value : '';
+    const v3 = peGroup3Select ? peGroup3Select.value : '';
+
+    const chosen = [v1, v2, v3].map(v => parseInt(v)).filter(v => !!v);
+
+    if (chosen.length !== 3) {
+      showError('Please select exactly 3 professional electives.');
+      return;
+    }
+
+    enrollBtn.disabled = true;
+    enrollBtn.textContent = 'Setting up…';
+
+    const result = await api('/api/enroll', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        semester: sem,
+        course: document.getElementById('course-select').value,
+        elective_subject_id: null,
+        elective_subject_ids: chosen,
+      }),
+    });
+
+    if (result && result.ok) {
+      window.location.href = '/dashboard';
+    } else {
+      showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');
+      enrollBtn.disabled = false;
+      enrollBtn.textContent = 'Set up my dashboard →';
+    }
+
+    return;
+  }
+
+  // Sem 1/2/3/4: unchanged payload
   let electiveId = null;
-  if ((sem === 1 || sem === 3) && electiveSection.style.display !== 'none') {
+  if ((sem === 1 || sem === 3 || sem === 4) && electiveSection.style.display === 'block') {
     electiveId = parseInt(electiveSelect.value) || null;
     if (!electiveId) {
       showError('Please choose your elective subject.');
@@ -171,11 +420,12 @@ form.addEventListener('submit', async (e) => {
   if (result && result.ok) {
     window.location.href = '/dashboard';
   } else {
-    showError('Something went wrong. Please try again.');
+    showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');
     enrollBtn.disabled = false;
     enrollBtn.textContent = 'Set up my dashboard →';
   }
 });
+
 
 function showError(msg) {
   formError.textContent = msg;

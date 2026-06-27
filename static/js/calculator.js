@@ -124,15 +124,15 @@ function computeGradesCalc(secured, struct) {
 
     let status, cssClass, label;
     if (sea2Needed <= 0) {
-      status = 'secured'; cssClass = 'status-green'; label = 'Already secured';
+      status = 'secured'; cssClass = 'status-green'; label = 'Ready';
     } else if (sea2Needed > sea2Max) {
-      status = 'not_achievable'; cssClass = 'status-grey'; label = 'Not achievable';
+      status = 'not_achievable'; cssClass = 'status-grey'; label = 'Limit reached';
     } else {
       const pct = sea2Needed / sea2Max;
-      if      (pct < 0.40) { cssClass = 'status-green';  label = 'On track'; }
-      else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Needs attention'; }
-      else if (pct < 0.90) { cssClass = 'status-red';    label = 'Critical — focus here'; }
-      else                 { cssClass = 'status-grey';   label = 'Not achievable'; }
+      if      (pct < 0.40) { cssClass = 'status-green';  label = 'Good pace'; }
+      else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Watch closely'; }
+      else if (pct < 0.90) { cssClass = 'status-red';    label = 'High pressure'; }
+      else                 { cssClass = 'status-grey';   label = 'Very high effort'; }
       status = 'achievable';
     }
 
@@ -157,13 +157,13 @@ function renderCalcResults(grades) {
 
   if (aplus.status === 'secured') {
     mainEl.textContent = 'A+ is secured 🎉';
-    subEl.textContent  = 'You\'ve already crossed the A+ threshold.';
+    subEl.textContent  = '';
   } else if (aplus.status === 'not_achievable') {
-    mainEl.textContent = 'A+ is not achievable';
-    subEl.textContent  = `SEA2 needed exceeds the maximum of ${aplus.sea2_max}.`;
+    mainEl.textContent = `Need ${+aplus.sea2_needed.toFixed(1)} / ${aplus.sea2_max} in SEA2 for A+`;
+    subEl.textContent  = '';
   } else {
     mainEl.textContent = `You need ${+aplus.sea2_needed.toFixed(1)} / ${aplus.sea2_max} in SEA2 for A+`;
-    subEl.textContent  = aplus.difficulty_label;
+    subEl.textContent  = '';
   }
 
   // Secondary grade pills.
@@ -172,7 +172,6 @@ function renderCalcResults(grades) {
     const g = grades[grade];
     let text;
     if (g.status === 'secured')          text = `${grade}: secured`;
-    else if (g.status === 'not_achievable') text = `${grade}: not achievable`;
     else                                 text = `${grade}: need ${+g.sea2_needed.toFixed(1)} / ${g.sea2_max}`;
     return `<span class="grade-pill ${g.css_class}">${text}</span>`;
   }).join('');

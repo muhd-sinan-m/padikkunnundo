@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Set New Password — padikkunnundo.app</title>
+  <meta name="description" content="Set your new password on padikkunnundo.app.">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=20260622-3">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-shell">
+    <section class="login-visual">
+      <div class="login-visual-art">
+        <img
+          src="{{ url_for('static', filename='img/reset_confirm.webp') }}"
+          alt="Set new password illustration"
+        >
+      </div>
+
+      <div class="login-visual-stats">
+        <div>
+          <strong>Study?</strong>
+          <span>Daily check-in</span>
+        </div>
+        <div>
+          <strong>Marks</strong>
+          <span>Track clearly</span>
+        </div>
+        <div>
+          <strong>Goals</strong>
+          <span>Stay ready</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="login-panel-inner">
+        <div class="login-brand">
+          <div>
+            <h1>padikkunnundo.app</h1>
+            <p>{{ college_name }}</p>
+          </div>
+        </div>
+
+        {% if error %}
+        <div class="login-error" role="alert" id="login-error">
+          {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="auth-panel-frame">
+          <div class="auth-panel active">
+            <h2 class="form-title">Set New Password</h2>
+            <p class="form-description">
+              Enter your new password below.
+            </p>
+            <form action="{{ url_for('auth.reset_password_confirm', token=token) }}" method="post" class="auth-form">
+              <label>
+                <span>New Password</span>
+                <input type="password" name="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" required>
+              </label>
+              <label>
+                <span>Confirm Password</span>
+                <input type="password" name="confirm_password" placeholder="Confirm new password" autocomplete="new-password" required>
+              </label>
+              <button type="submit" class="auth-submit">Reset Password</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</div>
+
+</body>
+</html>

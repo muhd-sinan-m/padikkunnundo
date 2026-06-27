@@ -16,22 +16,16 @@ pages_bp = Blueprint("pages", __name__)
 
 @pages_bp.route("/")
 def index():
-    from flask import current_app
-    if current_app.config.get("DEV_BYPASS_AUTH"):
-        return redirect(url_for("pages.dashboard"))
     user = get_current_user()
-    if user is None:
-        return redirect(url_for("pages.login"))
-    if not user.is_onboarded:
+    if user:
+        if user.is_onboarded:
+            return redirect(url_for("pages.dashboard"))
         return redirect(url_for("pages.onboarding"))
-    return redirect(url_for("pages.dashboard"))
+    return redirect(url_for("pages.login"))
 
 
 @pages_bp.route("/login")
 def login():
-    user = get_current_user()
-    if user and user.is_onboarded:
-        return redirect(url_for("pages.dashboard"))
     return render_template(
         "login.html",
         college_name=current_app.config["COLLEGE_NAME"],
@@ -58,9 +52,11 @@ def dashboard():
         "dashboard.html",
         user=user,
         platforms={
-            "pyqportal": current_app.config["PYQPORTAL_URL"],
-            "mcq_quiz":  current_app.config["MCQ_QUIZ_URL"],
-            "placement": current_app.config["PLACEMENT_URL"],
+            "pyqportal":     current_app.config["PYQPORTAL_URL"],
+            "mcq_quiz":      current_app.config["MCQ_QUIZ_URL"],
+            "placement":     current_app.config["PLACEMENT_URL"],
+            "topics":        current_app.config["TOPIC_URL"],
+            "mark_analyser": current_app.config["MARK_ANALYSER_URL"],
         },
     )
 
@@ -83,19 +79,10 @@ def calculator():
     return render_template("calculator.html", user=user)
 
 
-@pages_bp.route("/schedule")
+@pages_bp.route("/about")
 @login_required
-def schedule():
+def about():
     user = get_current_user()
     if not user.is_onboarded:
         return redirect(url_for("pages.onboarding"))
-    return render_template("schedule.html", user=user)
-
-
-@pages_bp.route("/topics")
-@login_required
-def topics():
-    user = get_current_user()
-    if not user.is_onboarded:
-        return redirect(url_for("pages.onboarding"))
-    return render_template("topics.html", user=user)
+    return render_template("about.html", user=user, active_page="about")

@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard — padikkunnundo.in{% endblock %}
+{% block title %}Dashboard — padikkunnundo.app{% endblock %}
 {% block description %}Your academic dashboard — marks, grade targets, and exam preparation for {{ user.name }}.{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
-
-{% set active_page = 'dashboard' %}
 
 {% block content %}
 <!-- Section 7.1 — Dashboard -->
@@ -14,15 +12,15 @@
   <div class="welcome-banner-content">
     <div class="welcome-banner-date">Today • {{ user.course }}</div>
     <h1 class="welcome-banner-heading" id="greeting-text">
-      Welcome back, {{ user.name.split()[0] if user.name else 'Student' }}
+      Welcome back, <span class="greeting-name">{{ user.name.split()[0] if user.name else 'Student' }}</span>
     </h1>
     <div class="welcome-banner-sub" id="user-context">
-      Semester {{ user.semester }} • Ready to check your progress?
+      Semester {{ user.semester }}<br>Ready to check your progress?
     </div>
   </div>
   <div class="welcome-banner-illustration">
     <div class="student-photo-bubble" aria-hidden="true">
-      <span>🧑‍🎓</span>
+      <img src="{{ url_for('static', filename='img/dashboard_logo.webp') }}" alt="Dashboard illustration" loading="eager">
     </div>
   </div>
 </section>
@@ -32,38 +30,46 @@
   <!-- Skeleton placeholders while data loads -->
   <div class="stat-card">
     <div class="stat-card-icon blue" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
       </svg>
     </div>
-    <div class="stat-card-value" id="stat-total">—</div>
-    <div class="stat-card-label">Subjects Enrolled</div>
+    <div class="stat-card-body">
+      <div class="stat-card-value" id="stat-total">—</div>
+      <div class="stat-card-label">Subjects Enrolled</div>
+    </div>
   </div>
   <div class="stat-card">
     <div class="stat-card-icon amber" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
     </div>
-    <div class="stat-card-value" id="stat-entered">—</div>
-    <div class="stat-card-label">Marks Entered</div>
+    <div class="stat-card-body">
+      <div class="stat-card-value" id="stat-entered">—</div>
+      <div class="stat-card-label">Marks Entered</div>
+    </div>
   </div>
   <div class="stat-card">
     <div class="stat-card-icon green" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </div>
-    <div class="stat-card-value" id="stat-on-track">—</div>
-    <div class="stat-card-label">On Track for A+</div>
+    <div class="stat-card-body">
+      <div class="stat-card-value" id="stat-on-track">—</div>
+      <div class="stat-card-label">On Track for A+</div>
+    </div>
   </div>
 </div>
 
 <!-- Platform resource cards (Section 7.7) — one click to sister platforms -->
-<div class="section-heading">Quick Access</div>
+<div class="section-heading quick-access-heading">Quick Access</div>
 <div class="platforms-grid">
   <a href="{{ platforms.pyqportal }}" target="_blank" rel="noopener" class="platform-card" id="card-pyqportal">
-    <div class="platform-card-icon pyq" aria-hidden="true">📄</div>
+    <div class="platform-card-icon pyq" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/pyq-favicon.ico') }}" alt="" class="platform-card-img">
+    </div>
     <div class="platform-card-text">
       <div class="platform-card-name">PYQPortal</div>
       <div class="platform-card-desc">Previous year question papers</div>
@@ -77,15 +83,28 @@
     </div>
   </a>
   <a href="{{ platforms.placement }}" target="_blank" rel="noopener" class="platform-card" id="card-placement">
-    <div class="platform-card-icon place" aria-hidden="true">💼</div>
+    <div class="platform-card-icon place" aria-hidden="true">⚙️</div>
     <div class="platform-card-text">
-      <div class="platform-card-name">Placement Prep</div>
-      <div class="platform-card-desc">Aptitude, coding, and interviews</div>
+      <div class="platform-card-name">Lab Practice</div>
+      <div class="platform-card-desc">Programming and lab exercises</div>
+    </div>
+  </a>
+  <a href="{{ platforms.topics }}" target="_blank" rel="noopener" class="platform-card" id="card-topics">
+    <div class="platform-card-icon topics" aria-hidden="true">📚</div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">Important Topics</div>
+      <div class="platform-card-desc">Curated topic lists for revision</div>
+    </div>
+  </a>
+  <a href="{{ platforms.mark_analyser }}" target="_blank" rel="noopener" class="platform-card" id="card-mark-analyser">
+    <div class="platform-card-icon mark-analyser" aria-hidden="true">📊</div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">Mark Analyser</div>
+      <div class="platform-card-desc">Grade & mark analysis</div>
     </div>
   </a>
 </div>
 
-<!-- Subject grid (Section 7.1) — enrolled subjects with progress indicators -->
 <div class="section-heading">Enrolled Subjects — Semester {{ user.semester }}</div>
 <div class="subjects-grid" id="subjects-grid">
   <!-- Populated by dashboard.js -->

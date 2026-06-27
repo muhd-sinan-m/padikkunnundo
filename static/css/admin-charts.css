@@ -1,0 +1,49 @@
+/* Admin charts: lightweight, no external chart libs */
+
+.users-chart {
+  width: 100%;
+}
+
+.users-chart-bars {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  height: 160px;
+  padding: 6px 0;
+}
+
+.users-chart-bar {
+  flex: 1;
+  min-width: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.users-chart-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--primary-blue), var(--primary-purple));
+  border-radius: 12px 12px 6px 6px;
+  height: 0%;
+  transition: height .25s ease;
+  box-shadow: 0 10px 18px rgba(59,130,246,.12);
+}
+
+.users-chart-bar-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.users-chart-xaxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+

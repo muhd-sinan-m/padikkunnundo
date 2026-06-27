@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Reset Password — padikkunnundo.app</title>
+  <meta name="description" content="Reset your password on padikkunnundo.app.">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=20260622-3">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-shell">
+    <section class="login-visual">
+      <div class="login-visual-art">
+        <img
+          src="{{ url_for('static', filename='img/reset_request.webp') }}"
+          alt="Reset password illustration"
+        >
+      </div>
+
+      <div class="login-visual-stats">
+        <div>
+          <strong>Study?</strong>
+          <span>Daily check-in</span>
+        </div>
+        <div>
+          <strong>Marks</strong>
+          <span>Track clearly</span>
+        </div>
+        <div>
+          <strong>Goals</strong>
+          <span>Stay ready</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="login-panel-inner">
+        <div class="login-brand">
+          <div>
+            <h1>padikkunnundo.app</h1>
+            <p>{{ college_name }}</p>
+          </div>
+        </div>
+
+        {% if error %}
+        <div class="login-error" role="alert" id="login-error">
+          {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="login-success" role="alert" id="login-success">
+          {{ success }}
+        </div>
+        {% else %}
+        <div class="auth-panel-frame">
+          <div class="auth-panel active">
+            <h2 class="form-title">Reset Password</h2>
+            <p class="form-description">
+              Enter your full name below. If your account has an email on file, you'll receive password reset instructions.
+            </p>
+            <form action="{{ url_for('auth.reset_password_request') }}" method="post" class="auth-form">
+              <label>
+                <span>Full Name</span>
+                <input type="text" name="name" placeholder="Enter your full name" autocomplete="name" required>
+              </label>
+              <button type="submit" class="auth-submit">Send Reset Link</button>
+            </form>
+            <div class="login-footer">
+              <a href="{{ url_for('pages.login') }}" class="forgot-password-link">Back to login</a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </section>
+  </div>
+</div>
+
+</body>
+</html>

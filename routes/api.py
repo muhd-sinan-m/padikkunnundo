@@ -15,8 +15,6 @@ Endpoints
   POST /api/marks/<subject_id>          → save/update marks for one subject
   GET  /api/grades/<subject_id>         → grade requirements for one subject
   GET  /api/focus                       → focus priority ranking (Section 7.4)
-  GET  /api/schedule                    → exam schedule (Section 7.5)
-  GET  /api/topics                      → important topics (Section 7.6)
 """
 
 from __future__ import annotations
@@ -28,7 +26,7 @@ from grading import (
     compute_grade_requirements,
     get_mark_structure,
 )
-from models import Enrollment, Mark, Subject, User, db
+from models import Announcement, Enrollment, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -46,6 +44,7 @@ def me():
             "pyqportal": current_app.config["PYQPORTAL_URL"],
             "mcq_quiz":  current_app.config["MCQ_QUIZ_URL"],
             "placement": current_app.config["PLACEMENT_URL"],
+            "topics":    current_app.config["TOPIC_URL"],
         },
     })
 
@@ -72,11 +71,18 @@ def enroll():
     data = request.get_json(silent=True) or {}
 
     semester = data.get("semester")
-    course = data.get("course", "BCA Cyber Security")
+    course = data.get("course", "BCA")
     elective_subject_id = data.get("elective_subject_id")
+    elective_subject_ids = data.get("elective_subject_ids")
 
     if not semester:
         return jsonify({"error": "semester is required."}), 400
+
+    # Normalize elective_subject_ids when present
+    if elective_subject_ids is not None and not isinstance(elective_subject_ids, list):
+        return jsonify({"error": "Invalid elective_subject_ids."}), 400
+
+
 
     # ── Save basic profile ────────────────────────────────────────────────────
     user.semester = semester
@@ -101,10 +107,26 @@ def enroll():
             # Create a blank marks row so we always have one per enrollment.
             db.session.add(Mark(user_id=user.id, subject_id=subject.subject_id))
 
-    # ── Enroll in the chosen elective ─────────────────────────────────────────
-    if elective_subject_id:
-        elective = db.session.get(Subject, elective_subject_id)
-        if elective and elective.is_elective:
+    # ── Enroll in the chosen elective(s) ─────────────────────────────────────────
+    if int(semester) == 5:
+        elective_subject_ids = elective_subject_ids or []
+        if not isinstance(elective_subject_ids, list) or len(elective_subject_ids) != 3:
+            return jsonify({"error": "Please select exactly 3 professional electives."}), 400
+
+        # Verify all 3 ids are valid and belong to pe_5
+        subjects = Subject.query.filter(
+            Subject.subject_id.in_(elective_subject_ids),
+            Subject.elective_group == 'pe_5',
+            Subject.is_elective == True,
+        ).all()
+
+        valid_ids = {s.subject_id for s in subjects}
+        if len(valid_ids) != 3 or any(i not in valid_ids for i in elective_subject_ids):
+            return jsonify({"error": "Invalid professional elective selection."}), 400
+
+
+        # Enroll in each of the 3 electives
+        for elective in subjects:
             existing = Enrollment.query.filter_by(
                 user_id=user.id, subject_id=elective.subject_id
             ).first()
@@ -116,8 +138,25 @@ def enroll():
                 ))
                 db.session.add(Mark(user_id=user.id, subject_id=elective.subject_id))
 
+    else:
+        # Existing Sem 1-4 flow (unchanged): single elective enrollment
+        if elective_subject_id:
+            elective = db.session.get(Subject, elective_subject_id)
+            if elective and elective.is_elective:
+                existing = Enrollment.query.filter_by(
+                    user_id=user.id, subject_id=elective.subject_id
+                ).first()
+                if not existing:
+                    db.session.add(Enrollment(
+                        user_id=user.id,
+                        subject_id=elective.subject_id,
+                        semester=semester,
+                    ))
+                    db.session.add(Mark(user_id=user.id, subject_id=elective.subject_id))
+
     db.session.commit()
     return jsonify({"ok": True, "semester": semester})
+
 
 
 # ── /api/subjects ─────────────────────────────────────────────────────────────
@@ -131,12 +170,35 @@ def subjects():
     """
     user: User = get_current_user()
 
+    # If user has no semester set, they need to complete onboarding
+    if user.semester is None or not user.is_onboarded:
+        current_app.logger.warning(
+            f"User {user.id} ({user.username}) has no semester set or not onboarded. "
+            "Redirect to onboarding needed."
+        )
+        return jsonify({
+            "subjects": [],
+            "stats": {
+                "total_subjects": 0,
+                "marks_entered": 0,
+                "on_track_for_aplus": 0,
+            },
+            "needs_onboarding": True,
+        }), 200
+
     enrollments = (
         Enrollment.query
         .filter_by(user_id=user.id, semester=user.semester)
         .join(Subject)
         .all()
     )
+
+    # Debug: Log if no enrollments found
+    if not enrollments:
+        current_app.logger.warning(
+            f"User {user.id} ({user.username}) in semester {user.semester} "
+            "has no enrollments. Onboarding may be incomplete."
+        )
 
     result = []
     marks_entered = 0
@@ -341,34 +403,35 @@ def focus():
     return jsonify({"ranked": ranked, "no_data": no_data})
 
 
-# ── /api/schedule ─────────────────────────────────────────────────────────────
-
-@api_bp.route("/schedule")
-@login_required
-def schedule():
-    """
-    Section 7.5 — Exam schedule.
-    Placeholder structure — dates are admin-managed and will be populated
-    once the data source is confirmed (Section 11.1).
-    """
-    # TODO: replace with database-backed schedule once admin panel is built.
-    return jsonify({"schedule": [], "message": "Exam dates will appear here once published."})
-
-
-# ── /api/topics ───────────────────────────────────────────────────────────────
-
-@api_bp.route("/topics")
-@login_required
-def topics():
-    """
-    Section 7.6 — Important topics.
-    Admin-curated, per-subject topic lists (Section 11.1 pending input).
-    """
-    # TODO: replace with database-backed topics once content is curated.
-    return jsonify({"topics": [], "message": "Important topics will appear here once published by the admin."})
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+@api_bp.route("/notifications")
+@login_required
+def notifications():
+    """Return announcements for the notification bell.
+
+    Returns latest 10 announcements ordered by created_at desc.
+    Shape: [{"id":...,"title":...,"body":...,"created_at":...}]
+    """
+    anns = (
+        Announcement.query
+        .order_by(Announcement.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": a.id,
+            "title": a.title,
+            "body": a.body,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in anns
+    ])
+
 
 def _assert_enrolled(user: User, subject_id: int) -> None:
     """

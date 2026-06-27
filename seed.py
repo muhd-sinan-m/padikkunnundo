@@ -22,6 +22,7 @@ SUBJECTS: list[tuple] = [
     ("Fundamentals of Programming Using C++",   1, 4, False, None),
     ("English for Science",                     1, 3, False, None),
     ("Cyber Laws and Security",                 1, 3, False, None),
+    ("Software Lab in C++",                     1, 2, False, None),
     # Language elective group — spans Sem 1 and Sem 2.
     # Only 2 of 6 options are confirmed; 4 are pending.
     ("Spanish 1",                               1, 3, True,  "lang_1_2"),
@@ -30,24 +31,29 @@ SUBJECTS: list[tuple] = [
     # ── Semester 2 (Table 8) ─────────────────────────────────────────────────
     # Note (Section 4.2): Language elective carries over — not re-selected.
     ("Indian Constitution: Legal and Ethical Perspectives", 2, 2, False, None),
-    ("Web Technology",                          2, 4, False, None),
-    ("Operating Systems",                       2, 5, False, None),
-    ("Data Structures",                         2, 4, False, None),
-    ("Mathematics",                             2, 3, False, None),
+    ("Web Technology",                          2, 2, False, None),
+    ("Operating Systems",                       2, 4, False, None),
+    ("Data Structures",                         2, 5, False, None),
+    ("Mathematics Foundations to Computer Science ",2, 4, False, None),
     ("AEC — English",                           2, 3, False, None),
     # Language elective continues (same group as Sem 1; Sem 2 counterparts).
     ("Spanish 2",                               2, 3, True,  "lang_1_2"),
     ("French 2",                                2, 3, True,  "lang_1_2"),
 
     # ── Semester 3 (Table 9) ─────────────────────────────────────────────────
-    ("Python",                                  3, 4, False, None),
-    ("DBMS",                                    3, 5, False, None),
-    ("Design and Algorithm",                    3, 3, False, None),
+    ("Python Programming",                                  3, 4, False, None),
+    ("Database Management Systems",                                    3, 5, False, None),
+    ("Design and Analysis of Algorithms",                    3, 3, False, None),
     ("Software Engineering",                    3, 3, False, None),
     ("Quantitative Techniques",                 3, 4, False, None),
     # Specialization elective group — spans Sem 3 and Sem 4.
     # Only 1 of 4 options confirmed; 3 are pending.
     ("Feature Engineering",                     3, 3, True,  "spec_3_4"),
+    ("Introduction to Cyber Security",          3, 3, True,  "spec_3_4"),
+    ("Interactive Web Application Development Using PHP and MySQL ", 3, 3, True,  "spec_3_4"),
+    ("Basics of Data Analytics Using Spreadsheet ",  3, 3, True,  "spec_3_4"),
+
+
 
     # ── Semester 4 (Table 10) ────────────────────────────────────────────────
     # Note (Section 4.3): Specialization elective carries over from Sem 3.
@@ -59,6 +65,10 @@ SUBJECTS: list[tuple] = [
     # Specialization elective continues (same group; Sem 4 counterparts).
     ("Network Simulation",                      4, 3, True,  "spec_3_4"),
     ("Intro to ML",                             4, 3, True,  "spec_3_4"),
+    ("Data Visualization ",                     4, 3, True,  "spec_3_4"),
+    ("Web Application Development Using Node.js and Express.js ",                             4, 3, True,  "spec_3_4"),
+
+
 ]
 
 

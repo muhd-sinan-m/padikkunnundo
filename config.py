@@ -6,6 +6,12 @@ Never hard-code secrets here; this file is safe to commit to version control.
 """
 
 import os
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+INSTANCE_DIR = BASE_DIR / "instance"
+INSTANCE_DIR.mkdir(exist_ok=True)
 
 
 class Config:
@@ -16,7 +22,7 @@ class Config:
     # Defaults to SQLite for local development.
     # Set DATABASE_URL to a PostgreSQL URI for production (AWS RDS).
     SQLALCHEMY_DATABASE_URI: str = os.environ.get(
-        "DATABASE_URL", "sqlite:///padikkunnundo.db"
+        "DATABASE_URL", f"sqlite:///{INSTANCE_DIR / 'padikkunnundo.db'}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
 
@@ -24,8 +30,7 @@ class Config:
     # Set to True to skip Google OAuth entirely.
     # A local dev user is auto-created on first run.
     # Flip to False when real OAuth credentials are in .env.
-    DEV_BYPASS_AUTH: bool = os.environ.get("DEV_BYPASS_AUTH", "true").lower() != "false"
-
+    DEV_BYPASS_AUTH: bool = os.environ.get("DEV_BYPASS_AUTH", "false").lower() == "true"
     # ── Google OAuth 2.0 ─────────────────────────────────────────────────────
     GOOGLE_CLIENT_ID: str = os.environ.get("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.environ.get("GOOGLE_CLIENT_SECRET", "")
@@ -39,7 +44,21 @@ class Config:
     SESSION_TOKEN_EXPIRY_DAYS: int = 30
     JWT_ALGORITHM: str = "HS256"
 
+    # ── Rate Limiting ─────────────────────────────────────────────────────────
+    # Rate limit for login attempts: 5 failed attempts per 15 minutes
+    RATELIMIT_ENABLED: bool = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
+    RATELIMIT_STORAGE_URL: str = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
+    RATELIMIT_STRATEGY: str = "fixed-window"
+
+    # ── Email / Password Reset (Resend API) ───────────────────────────────────
+    RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
+    MAIL_FROM: str = os.environ.get("MAIL_FROM", "noreply@padikkunnundo.app")
+    # Password reset token expiry in seconds (default: 1 hour)
+    RESET_TOKEN_EXPIRY_SECONDS: int = int(os.environ.get("RESET_TOKEN_EXPIRY_SECONDS", "3600"))
+
     # ── Sister Platform URLs ──────────────────────────────────────────────────
     PYQPORTAL_URL: str = "https://pyqportal.app"
     MCQ_QUIZ_URL: str = "https://quiz.pyqportal.app"
-    PLACEMENT_URL: str = "https://placement.pyqportal.app"
+    PLACEMENT_URL: str = "https://lab.pyqportal.app"
+    TOPIC_URL: str = "https://topic.pyqportal.app"
+    MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
