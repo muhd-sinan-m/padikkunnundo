@@ -8,5 +8,6 @@ PyJWT==2.8.0
 python-dotenv==1.0.1
 psycopg2-binary==2.9.11
 flask-limiter==3.5.0
+flask-wtf==1.2.2
 resend
 gunicorn

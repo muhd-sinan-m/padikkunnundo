@@ -54,6 +54,10 @@ class Config:
     RATELIMIT_STORAGE_URL: str = os.environ.get("RATELIMIT_STORAGE_URL", "memory://")
     RATELIMIT_STRATEGY: str = "fixed-window"
     RATELIMIT_ENABLED: bool = True
+
+    # ── CSRF Protection ─────────────────────────────────────────────────────────
+    WTF_CSRF_ENABLED: bool = True
+    WTF_CSRF_TIME_LIMIT: int = 3600  # 1 hour
     # ── Email / Password Reset (Resend API) ───────────────────────────────────
     RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
     MAIL_FROM: str = os.environ.get("MAIL_FROM", "noreply@padikkunnundo.app")

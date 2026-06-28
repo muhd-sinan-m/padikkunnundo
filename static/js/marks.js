@@ -273,14 +273,19 @@
         label    = 'Ready';
       } else if (sea2Needed > sea2Max) {
         status   = 'not_achievable';
-        cssClass = 'status-grey';
+        cssClass = (grade === 'A+') ? 'status-red' : 'status-grey';
         label    = 'Limit reached';
       } else {
-        var pct = sea2Needed / sea2Max;
-        if      (pct < 0.40) { cssClass = 'status-green';  label = 'Good pace'; }
-        else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Watch closely'; }
-        else if (pct < 0.90) { cssClass = 'status-red';    label = 'High pressure'; }
-        else                 { cssClass = 'status-grey';   label = 'Very high effort'; }
+        if (grade === 'A+') {
+          cssClass = 'status-green';
+          label    = 'Good pace';
+        } else {
+          var pct = sea2Needed / sea2Max;
+          if      (pct < 0.40) { cssClass = 'status-green';  label = 'Good pace'; }
+          else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Watch closely'; }
+          else if (pct < 0.90) { cssClass = 'status-red';    label = 'High pressure'; }
+          else                 { cssClass = 'status-grey';   label = 'Very high effort'; }
+        }
         status = 'achievable';
       }
 

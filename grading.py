@@ -149,7 +149,7 @@ def compute_grade_requirements(
                 "status": "not_achievable",
                 "difficulty_key": "impossible",
                 "difficulty_label": "Not mathematically achievable",
-                "css_class": "status-grey",
+                "css_class": "status-red" if grade == "A+" else "status-grey",
             }
         else:
             diff_key, diff_label, css = _classify_difficulty(sea2_needed, sea2_max)
@@ -159,7 +159,7 @@ def compute_grade_requirements(
                 "status": "achievable",
                 "difficulty_key": diff_key,
                 "difficulty_label": diff_label,
-                "css_class": css,
+                "css_class": "status-green" if grade == "A+" else css,
             }
 
     return {

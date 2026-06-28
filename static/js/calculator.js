@@ -126,13 +126,18 @@ function computeGradesCalc(secured, struct) {
     if (sea2Needed <= 0) {
       status = 'secured'; cssClass = 'status-green'; label = 'Ready';
     } else if (sea2Needed > sea2Max) {
-      status = 'not_achievable'; cssClass = 'status-grey'; label = 'Limit reached';
+      status = 'not_achievable'; cssClass = (grade === 'A+') ? 'status-red' : 'status-grey'; label = 'Limit reached';
     } else {
-      const pct = sea2Needed / sea2Max;
-      if      (pct < 0.40) { cssClass = 'status-green';  label = 'Good pace'; }
-      else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Watch closely'; }
-      else if (pct < 0.90) { cssClass = 'status-red';    label = 'High pressure'; }
-      else                 { cssClass = 'status-grey';   label = 'Very high effort'; }
+      if (grade === 'A+') {
+        cssClass = 'status-green';
+        label = 'Good pace';
+      } else {
+        const pct = sea2Needed / sea2Max;
+        if      (pct < 0.40) { cssClass = 'status-green';  label = 'Good pace'; }
+        else if (pct < 0.65) { cssClass = 'status-yellow'; label = 'Watch closely'; }
+        else if (pct < 0.90) { cssClass = 'status-red';    label = 'High pressure'; }
+        else                 { cssClass = 'status-grey';   label = 'Very high effort'; }
+      }
       status = 'achievable';
     }
 

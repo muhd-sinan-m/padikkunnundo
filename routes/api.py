@@ -173,7 +173,7 @@ def subjects():
     # If user has no semester set, they need to complete onboarding
     if user.semester is None or not user.is_onboarded:
         current_app.logger.warning(
-            f"User {user.id} ({user.username}) has no semester set or not onboarded. "
+            f"User {user.id} ({user.name}) has no semester set or not onboarded. "
             "Redirect to onboarding needed."
         )
         return jsonify({
@@ -196,7 +196,7 @@ def subjects():
     # Debug: Log if no enrollments found
     if not enrollments:
         current_app.logger.warning(
-            f"User {user.id} ({user.username}) in semester {user.semester} "
+            f"User {user.id} ({user.name}) in semester {user.semester} "
             "has no enrollments. Onboarding may be incomplete."
         )
 
@@ -321,7 +321,7 @@ def save_marks(subject_id: int):
             if raw is None:
                 setattr(mark_row, field, None)
             else:
-                clamped = min(float(raw), structure[field])
+                clamped = max(0.0, min(float(raw), structure[field]))
                 setattr(mark_row, field, clamped)
 
     db.session.commit()

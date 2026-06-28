@@ -62,6 +62,7 @@
               Enter your new password below.
             </p>
             <form action="{{ url_for('auth.reset_password_confirm', token=token) }}" method="post" class="auth-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <label>
                 <span>New Password</span>
                 <input type="password" name="password" id="new-password" placeholder="Enter new password" autocomplete="new-password" required>

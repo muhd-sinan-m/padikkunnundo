@@ -74,13 +74,10 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 oauth = OAuth()
 
 # ── Rate limiter instance (initialized in create_app) ─────────────────────────
-limiter: Optional[Limiter] = None
-
-
-def init_limiter(limiter_instance: Limiter) -> None:
-    """Store the limiter instance for use in route decorators."""
-    global limiter
-    limiter = limiter_instance
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "100 per hour"],
+)
 
 
 # ── Password strength validation ──────────────────────────────────────────────
@@ -239,6 +236,7 @@ def login_required(f):
 
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("5 per 15 minutes")
 def register():
     """Create a new local user account with a stored password hash."""
     name = clean_name(request.form.get("name", "").strip())
@@ -272,8 +270,18 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
+    # Validate email domain restriction
+    college_domain = current_app.config["COLLEGE_DOMAIN"]
+    if not email.endswith(f"@{college_domain}"):
+        return render_template(
+            "login.html",
+            error=f"Only accounts with the domain @{college_domain} are permitted to register.",
+            college_name=current_app.config["COLLEGE_NAME"],
+            college_domain=college_domain,
+        ), 400
+
     # Check for duplicate name
-    if User.query.filter_by(name=name).first():
+    if User.query.filter(User.name.ilike(name)).first():
         return render_template(
             "login.html",
             error="That name is already taken. Please choose another.",
@@ -319,6 +327,7 @@ def register():
 
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("5 per 15 minutes")
 def login():
     """Authenticate a local user account stored in the database."""
     # Rate limiting is applied globally via app config
@@ -326,7 +335,7 @@ def login():
     name = request.form.get("name", "").strip()
     password = request.form.get("password", "")
 
-    user = User.query.filter_by(name=name).first()
+    user = User.query.filter(User.name.ilike(name)).first()
     if not user or not user.password_hash:
         return render_template(
             "login.html",

@@ -16,15 +16,16 @@ load_dotenv()
 import os
 
 from flask import Flask
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from sqlalchemy import inspect
+
+csrf = CSRFProtect()
 
 from config import Config
 from models import db
 from routes import api_bp, auth_bp, pages_bp
 from routes.admin import admin_bp
-from routes.auth import init_oauth, init_limiter
+from routes.auth import init_oauth, limiter
 
 
 
@@ -35,17 +36,11 @@ def create_app(config_class=Config) -> Flask:
     # ── Extensions ────────────────────────────────────────────────────────────
     db.init_app(app)
     init_oauth(app)
+    csrf.init_app(app)
 
-    # ── Rate Limiting ─────────────────────────────────────────────────────────
-    limiter = Limiter(
-        key_func=get_remote_address,
-        app=app,
-        default_limits=["200 per day", "100 per hour"],
-        storage_uri=app.config["RATELIMIT_STORAGE_URL"],
-        strategy=app.config["RATELIMIT_STRATEGY"],
-        enabled=app.config["RATELIMIT_ENABLED"],
-    )
-    init_limiter(limiter)
+    # Map custom config key to Flask-Limiter's standard config key
+    app.config["RATELIMIT_STORAGE_URI"] = app.config["RATELIMIT_STORAGE_URL"]
+    limiter.init_app(app)
 
     # Apply rate limiting to login route (after blueprint registration)
     # Rate limiting is applied via the @limiter.limit decorator in the route itself
@@ -56,7 +51,24 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(api_bp)
     app.register_blueprint(admin_bp)
 
+    # ── CSRF exemptions ───────────────────────────────────────────────────────
+    # JSON API endpoints don't use cookie/form sessions — exempt the whole blueprint
+    csrf.exempt(api_bp)
+    # Google OAuth callback is a redirect from Google, not a form POST
+    csrf.exempt("auth.google_callback")
+    # Login and register are already protected by rate limiting + domain check +
+    # bcrypt — CSRF here would break direct POSTs from non-browser clients.
+    csrf.exempt("auth.login")
+    csrf.exempt("auth.register")
+
     # ── Error handlers ────────────────────────────────────────────────────────
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        from flask import jsonify, request
+        if request.accept_mimetypes.accept_json:
+            return jsonify({"error": "CSRF token missing or invalid."}), 400
+        return "CSRF token missing or invalid.", 400
+
     @app.errorhandler(403)
     def forbidden(e):
         from flask import jsonify, request
@@ -71,6 +83,20 @@ def create_app(config_class=Config) -> Flask:
             return jsonify({"error": "Not found."}), 404
         return "Page not found.", 404
 
+    @app.after_request
+    def add_security_headers(response):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data:;"
+        )
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
     def ensure_schema() -> None:
         """Create missing tables when a local SQLite database is fresh."""
         inspector = inspect(db.engine)
@@ -79,10 +105,6 @@ def create_app(config_class=Config) -> Flask:
 
     # ── Create tables on first run ────────────────────────────────────────────
     with app.app_context():
-        ensure_schema()
-
-    @app.before_request
-    def ensure_schema_before_request():
         ensure_schema()
 
     @app.cli.command("init-db")
@@ -96,4 +118,4 @@ def create_app(config_class=Config) -> Flask:
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
