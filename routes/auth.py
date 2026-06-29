@@ -64,7 +64,6 @@ from flask import (
     url_for,
 )
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import Enrollment, Mark, Subject, User, db
@@ -73,10 +72,20 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 oauth = OAuth()
 
+
+def get_cf_real_ip():
+    from flask import request
+    return (
+        request.headers.get("CF-Connecting-IP") or
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or
+        request.remote_addr
+    )
+
+
 # ── Rate limiter instance (initialized in create_app) ─────────────────────────
 limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "100 per hour"],
+    key_func=get_cf_real_ip,
+    default_limits=["200 per day", "10 per hour"],
 )
 
 
