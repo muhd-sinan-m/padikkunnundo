@@ -103,6 +103,15 @@
       <div class="platform-card-desc">Grade & mark analysis</div>
     </div>
   </a>
+  <a href="{{ url_for('pages.go_to_doubtundo') }}" class="platform-card" id="card-doubtundo">
+    <div class="platform-card-icon doubtundo" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/logo_doubtndo.webp') }}" alt="" class="platform-card-img">
+    </div>
+    <div class="platform-card-text">
+      <div class="platform-card-name">Doubtundo</div>
+      <div class="platform-card-desc">Ask your doubts and chat</div>
+    </div>
+  </a>
 </div>
 
 <div class="section-heading">Enrolled Subjects — Semester {{ user.semester }}</div>

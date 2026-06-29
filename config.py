@@ -43,6 +43,9 @@ class Config:
     # ── Session / JWT ─────────────────────────────────────────────────────────
     SESSION_TOKEN_EXPIRY_DAYS: int = 30
     JWT_ALGORITHM: str = "HS256"
+    # Secret used to sign cross-platform SSO tokens (e.g. for Doubtundo).
+    # Override via JWT_SECRET env var in production.
+    JWT_SECRET: str = os.environ.get("JWT_SECRET", "dev-only-jwt-secret")
 
     # ── Rate Limiting ─────────────────────────────────────────────────────────
     # Rate limit for login attempts: 5 failed attempts per 15 minutes
@@ -70,3 +73,4 @@ class Config:
     PLACEMENT_URL: str = "https://lab.pyqportal.app"
     TOPIC_URL: str = "https://topic.pyqportal.app"
     MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
+    DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.app")

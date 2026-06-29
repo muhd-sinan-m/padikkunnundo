@@ -835,8 +835,8 @@ button, input, select, textarea {
 }
 
 .platform-card-img {
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
   display: block;
 }
@@ -845,6 +845,7 @@ button, input, select, textarea {
 .platform-card-icon.place         { background: #ECFDF5; }
 .platform-card-icon.topics        { background: #FFF7ED; }
 .platform-card-icon.mark-analyser { background: #FDF2F8; }
+.platform-card-icon.doubtundo     { background: #F0FDF4; }
 
 .platform-card-text {
   display: flex;

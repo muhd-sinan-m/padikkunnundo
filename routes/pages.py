@@ -7,7 +7,10 @@ Handles the Section 5.4 first-time vs returning user routing:
   • Authenticated, onboarded → /dashboard (and other protected pages)
 """
 
+import time
+
 from flask import Blueprint, current_app, redirect, render_template, url_for
+import jwt
 
 from routes.auth import get_current_user, login_required
 
@@ -57,6 +60,7 @@ def dashboard():
             "placement":     current_app.config["PLACEMENT_URL"],
             "topics":        current_app.config["TOPIC_URL"],
             "mark_analyser": current_app.config["MARK_ANALYSER_URL"],
+            "doubtundo":     current_app.config["DOUBTUNDO_URL"],
         },
     )
 
@@ -86,3 +90,30 @@ def about():
     if not user.is_onboarded:
         return redirect(url_for("pages.onboarding"))
     return render_template("about.html", user=user, active_page="about")
+
+
+@pages_bp.route("/go-to-doubtundo")
+@login_required
+def go_to_doubtundo():
+    """
+    SSO bridge to Doubtundo.
+
+    Mints a short-lived JWT (5 min) containing the current user's identity
+    and redirects to DOUBTUNDO_URL/auth?token=<token>.
+    Doubtundo verifies the token with the shared JWT_SECRET and signs the
+    user in without requiring a separate login.
+    """
+    user = get_current_user()
+    payload = {
+        "user_id": str(user.id),
+        "email":   user.email,
+        "name":    user.name,
+        "exp":     int(time.time()) + 300,  # 5-minute expiry
+    }
+    token = jwt.encode(
+        payload,
+        current_app.config["JWT_SECRET"],
+        algorithm=current_app.config["JWT_ALGORITHM"],
+    )
+    dest = current_app.config["DOUBTUNDO_URL"]
+    return redirect(f"{dest}/auth?token={token}")
