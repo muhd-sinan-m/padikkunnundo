@@ -73,4 +73,4 @@ class Config:
     PLACEMENT_URL: str = "https://lab.pyqportal.app"
     TOPIC_URL: str = "https://topic.pyqportal.app"
     MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
-    DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.app")
+    DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
