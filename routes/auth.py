@@ -85,7 +85,7 @@ def get_cf_real_ip():
 # ── Rate limiter instance (initialized in create_app) ─────────────────────────
 limiter = Limiter(
     key_func=get_cf_real_ip,
-    default_limits=["200 per day", "10 per hour"],
+    default_limits=["100 per hour"],
 )
 
 
@@ -379,23 +379,31 @@ def reset_password_request():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         )
 
-    name = request.form.get("name", "").strip()
-    if not name:
+    email = request.form.get("email", "").strip().lower()
+    if not email:
         return render_template(
             "reset_request.html",
-            error="Full name is required.",
+            error="Email address is required.",
             college_name=current_app.config["COLLEGE_NAME"],
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    user = User.query.filter_by(name=name).first()
-
-    # Only proceed if user exists AND has an email AND has a password (local auth user)
-    if not user or not user.email or not user.password_hash:
-        # Return success message anyway to prevent name enumeration
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         return render_template(
             "reset_request.html",
-            success="If an account with that name exists and has an email, you will receive password reset instructions.",
+            error="Please provide a valid email address.",
+            college_name=current_app.config["COLLEGE_NAME"],
+            college_domain=current_app.config["COLLEGE_DOMAIN"],
+        ), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    # Only proceed if user exists AND has a password (local auth user)
+    if not user or not user.password_hash:
+        # Return success message anyway to prevent email enumeration
+        return render_template(
+            "reset_request.html",
+            success="If an account with that email exists, you will receive password reset instructions.",
             college_name=current_app.config["COLLEGE_NAME"],
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         )
@@ -443,7 +451,7 @@ def reset_password_request():
 
     return render_template(
         "reset_request.html",
-        success="If an account with that name exists and has an email, you will receive password reset instructions.",
+        success="If an account with that email exists, you will receive password reset instructions.",
         college_name=current_app.config["COLLEGE_NAME"],
         college_domain=current_app.config["COLLEGE_DOMAIN"],
     )
