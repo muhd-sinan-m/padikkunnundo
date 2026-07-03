@@ -2828,11 +2828,10 @@ button, input, select, textarea {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .about-page {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   /* page-content wrapper already provides the padding; avoid extra top spacing here */
-  padding: 0 var(--spacing-xl) var(--spacing-2xl);
-  padding-left: 0;
+  padding: 0 var(--spacing-lg) var(--spacing-2xl);
 }
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
@@ -2946,12 +2945,15 @@ button, input, select, textarea {
 .contributors-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-top: 16px;
+  gap: 24px;
+  margin-top: 24px;
 }
 
-@media (max-width: 640px) {
-  .contributors-grid { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .contributors-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* Main contributor layout */
@@ -2962,16 +2964,18 @@ button, input, select, textarea {
   padding: var(--spacing-lg);
   text-align: left;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  gap: 14px;
+  gap: 16px;
   align-items: flex-start;
 }
 
 .contributor-card:hover {
   border-color: var(--primary-purple);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -5px rgba(139, 92, 246, 0.12), 0 8px 16px -8px rgba(139, 92, 246, 0.08);
+  transform: translateY(-4px);
 }
 
 .contributor-avatar {
@@ -2994,6 +2998,14 @@ button, input, select, textarea {
   width: 56px;
   height: 56px;
   flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.contributor-card:hover .contributor-avatar-container {
+  transform: scale(1.08) rotate(3deg);
 }
 
 .contributor-avatar-img {
@@ -3007,6 +3019,14 @@ button, input, select, textarea {
 .project-highlight {
   color: var(--primary-purple);
   font-weight: 700;
+  background: rgba(139, 92, 246, 0.04);
+  padding: 1px 5px;
+  border-radius: 6px;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.contributor-card:hover .project-highlight {
+  background: rgba(139, 92, 246, 0.09);
 }
 
 .contributor-body {
@@ -3014,28 +3034,38 @@ button, input, select, textarea {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-}
-
-.contributor-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex: 1;
 }
 
 .contributor-name {
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0F172A;
   line-height: 1.2;
 }
 
+.contributor-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.sub-role-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.1px;
+}
+
 .role-pill {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--primary-purple);
   background: #F5F3FF;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 3px 9px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -3044,7 +3074,7 @@ button, input, select, textarea {
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 .contributor-link {
@@ -3054,7 +3084,12 @@ button, input, select, textarea {
   font-size: 0.9rem;
   font-weight: 800;
   color: #0A66C2;
-  margin-top: 2px;
+  margin-top: 4px;
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms ease;
+}
+
+.contributor-card:hover .contributor-link {
+  transform: translateX(4px);
 }
 
 /* Main developer (featured) overrides */
