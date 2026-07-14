@@ -25,6 +25,12 @@ class Config:
         "DATABASE_URL", f"sqlite:///{INSTANCE_DIR / 'padikkunnundo.db'}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
+    SQLALCHEMY_ENGINE_OPTIONS: dict = {
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
 
     # ── Dev mode — bypass authentication ─────────────────────────────────────
     # Set to True to skip Google OAuth entirely.

@@ -135,9 +135,9 @@ class Enrollment(db.Model):
     __tablename__ = "enrollments"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     subject_id = db.Column(
-        db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
+        db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False, index=True
     )
     semester = db.Column(db.Integer, nullable=False)
 
@@ -160,9 +160,9 @@ class Mark(db.Model):
     __tablename__ = "marks"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     subject_id = db.Column(
-        db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False
+        db.Integer, db.ForeignKey("subjects.subject_id"), nullable=False, index=True
     )
 
     # CCA sub-components (Section 3.1.1)

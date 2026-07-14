@@ -32,6 +32,12 @@ from routes.auth import get_current_user, login_required
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
+def _get_marks_map(user_id: int) -> dict:
+    """One query: returns {subject_id: Mark} for all of the user's marks."""
+    rows = Mark.query.filter_by(user_id=user_id).all()
+    return {m.subject_id: m for m in rows}
+
+
 # ── /api/me ───────────────────────────────────────────────────────────────────
 
 @api_bp.route("/me")
@@ -200,6 +206,8 @@ def subjects():
             "has no enrollments. Onboarding may be incomplete."
         )
 
+    marks_map = _get_marks_map(user.id)
+
     result = []
     marks_entered = 0
 
@@ -207,9 +215,7 @@ def subjects():
         subj = enr.subject
         structure = get_mark_structure(int(subj.credit))
 
-        mark_row = Mark.query.filter_by(
-            user_id=user.id, subject_id=subj.subject_id
-        ).first()
+        mark_row = marks_map.get(subj.subject_id)
 
         marks_dict = {}
         if mark_row:
@@ -230,7 +236,7 @@ def subjects():
         })
 
     # Summary stats for the dashboard (Section 7.1)
-    on_track = _count_on_track(user, enrollments)
+    on_track = _count_on_track(enrollments, marks_map)
 
     return jsonify({
         "subjects": result,
@@ -242,14 +248,12 @@ def subjects():
     })
 
 
-def _count_on_track(user: User, enrollments) -> int:
+def _count_on_track(enrollments, marks_map: dict) -> int:
     """Count subjects where A+ is still achievable or already secured."""
     count = 0
     for enr in enrollments:
         subj = enr.subject
-        mark_row = Mark.query.filter_by(
-            user_id=user.id, subject_id=subj.subject_id
-        ).first()
+        mark_row = marks_map.get(subj.subject_id)
         if not mark_row:
             continue
         result = compute_grade_requirements(
@@ -385,12 +389,12 @@ def focus():
         .all()
     )
 
+    marks_map = _get_marks_map(user.id)
+
     subjects_with_marks = []
     for enr in enrollments:
         subj = enr.subject
-        mark_row = Mark.query.filter_by(
-            user_id=user.id, subject_id=subj.subject_id
-        ).first()
+        mark_row = marks_map.get(subj.subject_id)
         marks = {}
         if mark_row:
             marks = {

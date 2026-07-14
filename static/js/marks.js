@@ -137,7 +137,13 @@
 
       + '<div class="marks-card-header">'
       + '<div class="marks-card-title">' + escHtml(subject.subject_name) + '</div>'
+      + '<div class="marks-card-header-right">'
       + '<span class="credit-badge">' + subject.credit + ' credits · Total ' + struct.total + '</span>'
+      + '<button class="clear-marks-btn" id="clear-btn-' + id + '" data-subject="' + id + '" aria-label="Clear all marks for ' + escHtml(subject.subject_name) + '" title="Clear all marks">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+      + ' Clear'
+      + '</button>'
+      + '</div>'
       + '</div>'
 
       + '<div class="marks-card-body">'
@@ -207,6 +213,12 @@
         scheduleSave(id);
       });
     });
+
+    // Clear button
+    var clearBtn = document.getElementById('clear-btn-' + id);
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () { clearMarks(id, struct); });
+    }
   }
 
 
@@ -358,6 +370,49 @@
       body[f] = raw === '' ? null : parseFloat(raw);
     });
 
+    await api('/api/marks/' + id, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    invalidateSubjectsCache();
+  }
+
+
+  /* ── Clear all marks ─────────────────────────────────────────────────────── */
+
+  async function clearMarks(subjectId, struct) {
+    if (!confirm('Clear all marks for this subject? This cannot be undone.')) return;
+
+    var id     = subjectId;
+    var fields = ['isa', 'cp', 'lb', 'ld', 'sea1'];
+
+    // Cancel any pending debounced save so it doesn't overwrite the clear
+    clearTimeout(saveTimers[id]);
+
+    // Clear all inputs in the UI immediately
+    fields.forEach(function (f) {
+      var el = document.getElementById('input-' + f + '-' + id);
+      if (el) el.value = '';
+    });
+
+    // Reset live display
+    updateCardDisplay(id, struct);
+
+    // Reset the banner back to placeholder state
+    var bannerEl = document.getElementById('banner-' + id);
+    var mainEl   = document.getElementById('banner-main-' + id);
+    var subEl    = document.getElementById('banner-sub-' + id);
+    var pillsEl  = document.getElementById('pills-' + id);
+    if (bannerEl) bannerEl.className = 'grade-banner status-grey';
+    if (mainEl)   mainEl.textContent  = 'Enter marks to see your A+ target';
+    if (subEl)    subEl.textContent   = '—';
+    if (pillsEl)  pillsEl.innerHTML   = '';
+
+    // Persist nulls to server
+    var body = {};
+    fields.forEach(function (f) { body[f] = null; });
     await api('/api/marks/' + id, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
