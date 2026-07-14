@@ -36,7 +36,7 @@
           </span>
           Dashboard
         </a>
-        <a class="sidebar-nav-item {% if section == 'users' or section == 'user_edit' %}active{% endif %}" href="{{ url_for('admin.admin_users_list') }}">
+        <a class="sidebar-nav-item {% if section == 'users' or section == 'user_edit' or section == 'electives' %}active{% endif %}" href="{{ url_for('admin.admin_users_list') }}">
           <span class="nav-icon" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -244,6 +244,7 @@
                     <th style="padding:10px 6px;">Name</th>
                     <th style="padding:10px 6px;">Email</th>
                     <th style="padding:10px 6px;">Semester</th>
+                    <th style="padding:10px 6px;">Elective</th>
                     <th style="padding:10px 6px;">Login Method</th>
                     <th style="padding:10px 6px;">Created</th>
                     <th style="padding:10px 6px;">Actions</th>
@@ -255,10 +256,18 @@
                       <td style="padding:10px 6px;font-weight:800;">{{ u.name }}</td>
                       <td style="padding:10px 6px;">{{ u.email }}</td>
                       <td style="padding:10px 6px;font-weight:800;">{{ u.semester or '-' }}</td>
+                      <td style="padding:10px 6px;">
+                        {% if u.elective and u.elective != '—' %}
+                          <span class="grade-pill status-green" style="font-size:11px;">{{ u.elective }}</span>
+                        {% else %}
+                          <span style="color:var(--text-secondary);font-size:12px;">—</span>
+                        {% endif %}
+                      </td>
                       <td style="padding:10px 6px;">{{ u.login_method }}</td>
                       <td style="padding:10px 6px;color:var(--text-secondary);font-size:12px;">{{ u.created_at }}</td>
                       <td style="padding:10px 6px;white-space:nowrap;">
                         <a class="subject-card-link" href="{{ url_for('admin.admin_user_edit', user_id=u.id) }}" style="margin-right:8px;">Edit</a>
+                        <a class="subject-card-link" href="{{ url_for('admin.admin_user_electives', user_id=u.id) }}" style="margin-right:8px;border-color:var(--accent-blue,#4f8ef7);color:var(--accent-blue,#4f8ef7);">Electives</a>
                         <form method="post" action="{{ url_for('admin.admin_user_delete', user_id=u.id) }}" style="display:inline;" onsubmit="return confirm('Delete user? This will permanently remove the user, enrollments and marks.');">
                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <button type="submit" class="subject-card-link" style="border-color:var(--accent-red);color:var(--accent-red);">Delete</button>
@@ -270,6 +279,150 @@
               </table>
             </div>
           </div>
+        {% endif %}
+
+        <!-- Electives -->
+        {% if section == 'electives' %}
+          <div style="margin-bottom:18px;display:flex;align-items:center;gap:14px;">
+            <a href="{{ url_for('admin.admin_users_list') }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);text-decoration:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 5-7 7 7 7"/></svg>
+              Back to Users
+            </a>
+            <div class="section-heading" style="margin:0;">Student Elective Management</div>
+          </div>
+
+          <!-- Student info card -->
+          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;padding:20px 22px;margin-bottom:22px;display:flex;align-items:center;gap:18px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;">
+              {{ (user.name or 'S')[0]|upper }}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:18px;font-weight:900;">{{ user.name }}</div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">{{ user.email }}</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">Semester</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;">{{ sem or '—' }}</div>
+              </div>
+              <div style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">Group</div>
+                <div style="font-size:13px;font-weight:900;margin-top:4px;">{{ group_label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current electives -->
+          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:22px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;display:flex;align-items:center;gap:10px;">
+              <span>Current Elective(s)</span>
+            </div>
+            <div style="padding:16px 20px;">
+              {% if current_elective_enrollments %}
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                  {% for enr in current_elective_enrollments %}
+                    <div style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));border:1.5px solid rgba(99,102,241,.25);border-radius:14px;padding:12px 18px;">
+                      <div style="font-weight:900;font-size:15px;">{{ enr.subject.subject_name }}</div>
+                      <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ enr.subject.elective_group }} • {{ enr.subject.credit }} credits • Sem {{ enr.semester }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="empty-state">
+                  <div class="empty-state-title">No elective enrolled</div>
+                  <div class="empty-state-desc">This student has not been enrolled in any elective for their current semester.</div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if not sem %}
+            <div style="background:var(--color-red-bg,#fef2f2);border:1.5px solid var(--color-red,#ef4444);border-radius:16px;padding:16px 20px;">
+              <div style="font-weight:900;color:var(--color-red,#ef4444);">No semester set</div>
+              <div style="margin-top:6px;font-size:13px;">This student has not completed onboarding. Set a semester first via Edit User.</div>
+            </div>
+
+          {% elif elective_group == 'pe_5' %}
+            <!-- Sem 5/6 — 3 professional electives -->
+            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change Professional Electives</div>
+              <div style="padding:18px 20px;">
+                {% if available_subjects %}
+                  <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" id="pe5-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Select exactly <strong>3</strong> professional electives. Current marks for removed electives will be deleted.</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:18px;" id="pe5-grid">
+                      {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
+                      {% for s in available_subjects %}
+                        <label style="display:flex;align-items:flex-start;gap:12px;background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" class="pe5-option">
+                          <input type="checkbox" name="elective_subject_ids" value="{{ s.subject_id }}" style="margin-top:2px;width:16px;height:16px;accent-color:#6366f1;" {% if s.subject_id in current_ids %}checked{% endif %} onchange="updatePe5Count()">
+                          <div>
+                            <div style="font-weight:800;font-size:14px;">{{ s.subject_name }}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">{{ s.credit }} credits</div>
+                          </div>
+                        </label>
+                      {% endfor %}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:14px;">
+                      <div id="pe5-count-msg" style="font-size:13px;font-weight:700;color:var(--text-secondary);">0 of 3 selected</div>
+                      <button class="btn-primary" type="submit" id="pe5-submit" style="width:auto;padding:0.88rem 1.4rem;" disabled>Save Electives</button>
+                    </div>
+                  </form>
+                  <script>
+                    function updatePe5Count() {
+                      const boxes = document.querySelectorAll('input[name="elective_subject_ids"]');
+                      const checked = Array.from(boxes).filter(b => b.checked).length;
+                      const msg = document.getElementById('pe5-count-msg');
+                      const btn = document.getElementById('pe5-submit');
+                      msg.textContent = checked + ' of 3 selected';
+                      msg.style.color = checked === 3 ? '#22c55e' : checked > 3 ? '#ef4444' : 'var(--text-secondary)';
+                      btn.disabled = checked !== 3;
+                    }
+                    // Initialise on load
+                    updatePe5Count();
+                  </script>
+                {% else %}
+                  <div class="empty-state">
+                    <div class="empty-state-title">No professional electives available</div>
+                    <div class="empty-state-desc">No active subjects with elective_group=pe_5 found. Add them via Subjects first.</div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+          {% else %}
+            <!-- Sem 3/4 — single specialisation elective -->
+            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change Specialisation</div>
+              <div style="padding:18px 20px;">
+                {% if available_subjects %}
+                  <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" class="auth-form" style="max-width:520px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">
+                      Changing the elective will remove existing elective marks and create a fresh mark row.
+                      {% if elective_group == 'lang_1_2' %}This applies across Sem 1 and Sem 2.{% else %}This applies across Sem 3 and Sem 4.{% endif %}
+                    </div>
+                    {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
+                    <label style="margin-bottom:14px;display:block;">
+                      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Select Specialisation</div>
+                      <select name="elective_subject_id" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-color);border-radius:14px;background:#fff;font-family:inherit;font-size:14px;" required>
+                        <option value="" disabled {% if not current_ids %}selected{% endif %}>— choose a specialisation —</option>
+                        {% for s in available_subjects %}
+                          <option value="{{ s.subject_id }}" {% if s.subject_id in current_ids %}selected{% endif %}>{{ s.subject_name }} ({{ s.credit }} cr)</option>
+                        {% endfor %}
+                      </select>
+                    </label>
+                    <button class="btn-primary" type="submit" style="width:auto;padding:0.88rem 1.4rem;" onclick="return confirm('Change this student\'s elective? Their old elective marks will be permanently deleted.');">Save Elective</button>
+                  </form>
+                {% else %}
+                  <div class="empty-state">
+                    <div class="empty-state-title">No specialisation subjects available</div>
+                    <div class="empty-state-desc">No active subjects with elective_group=spec_3_4 found. Add them via Subjects first.</div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
         {% endif %}
 
         <!-- User edit -->

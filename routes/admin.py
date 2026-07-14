@@ -158,6 +158,42 @@ def admin_dashboard():
     )
 
 
+def _get_user_elective_names(user: User) -> str:
+    """
+    Return a human-readable string of the student's current elective(s).
+    Looks up the elective group based on semester.
+    """
+    if not user.semester:
+        return "—"
+
+    sem = int(user.semester)
+    if sem in (1, 2):
+        group = "lang_1_2"
+    elif sem in (3, 4):
+        group = "spec_3_4"
+    elif sem == 5:
+        group = "pe_5"
+    else:
+        group = None
+
+    if not group:
+        return "—"
+
+    # Get elective enrollments for this user in the current semester
+    elective_enrollments = (
+        Enrollment.query
+        .filter_by(user_id=user.id, semester=sem)
+        .join(Subject)
+        .filter(Subject.is_elective == True, Subject.elective_group == group)
+        .all()
+    )
+
+    if not elective_enrollments:
+        return "—"
+
+    return ", ".join(e.subject.subject_name for e in elective_enrollments)
+
+
 @admin_bp.route("/users")
 @login_required
 @admin_required
@@ -185,7 +221,7 @@ def admin_users_list():
                 "name": u.name,
                 "email": u.email,
                 "semester": u.semester,
-                "elective": None,  # elective is not stored on User
+                "elective": _get_user_elective_names(u),
                 "login_method": login_method(u),
                 "created_at": u.created_at,
             }
@@ -380,6 +416,163 @@ def admin_announcement_delete(id: int):
 
     flash("Announcement deleted.", "success")
     return redirect(url_for("admin.admin_announcements_list"))
+
+
+@admin_bp.route("/users/<int:user_id>/electives", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_user_electives(user_id: int):
+    """
+    GET  — View current elective(s) for the student and, for Sem 3+, show a change form.
+    POST — Swap the student's elective enrollment(s). Old marks are deleted; new blank marks created.
+    """
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
+
+    sem = int(user.semester) if user.semester else None
+
+    # Determine elective group and type label
+    if sem in (1, 2):
+        elective_group = "lang_1_2"
+        group_label = "Language Elective (Sem 1–2)"
+        can_change = True
+    elif sem in (3, 4):
+        elective_group = "spec_3_4"
+        group_label = "Specialisation Elective (Sem 3–4)"
+        can_change = True
+    elif sem == 5:
+        elective_group = "pe_5"
+        group_label = "Professional Elective (Sem 5)"
+        can_change = True
+    elif sem == 6:
+        # Sem 6 typically continues pe_5 specialisation; allow change.
+        elective_group = "pe_5"
+        group_label = "Professional Elective (Sem 6)"
+        can_change = True
+    else:
+        elective_group = None
+        group_label = "No elective"
+        can_change = False
+
+    # All available subjects in this elective group (across the relevant semester)
+    available_subjects: list[Subject] = []
+    if elective_group:
+        available_subjects = (
+            Subject.query
+            .filter_by(is_elective=True, elective_group=elective_group, is_active=True)
+            .order_by(Subject.subject_name.asc())
+            .all()
+        )
+
+    # Current elective enrollments for this student
+    current_elective_enrollments: list[Enrollment] = []
+    if elective_group and sem:
+        current_elective_enrollments = (
+            Enrollment.query
+            .filter_by(user_id=user.id, semester=sem)
+            .join(Subject)
+            .filter(Subject.is_elective == True, Subject.elective_group == elective_group)
+            .all()
+        )
+
+    if request.method == "POST":
+        if not can_change:
+            flash("Elective changes are only allowed for Semester 3 and above.", "error")
+            return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+        if elective_group == "pe_5":
+            # Sem 5/6: expect exactly 3 elective IDs
+            new_ids_raw = request.form.getlist("elective_subject_ids")
+            try:
+                new_ids = [int(x) for x in new_ids_raw]
+            except (ValueError, TypeError):
+                flash("Invalid elective selection.", "error")
+                return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+            if len(new_ids) != 3:
+                flash("Please select exactly 3 professional electives.", "error")
+                return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+            # Verify all IDs are valid pe_5 subjects
+            valid_subjects = Subject.query.filter(
+                Subject.subject_id.in_(new_ids),
+                Subject.elective_group == "pe_5",
+                Subject.is_elective == True,
+            ).all()
+            if len(valid_subjects) != 3:
+                flash("One or more selected subjects are invalid.", "error")
+                return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+            # Remove old pe_5 elective enrollments + marks
+            old_enrs = (
+                Enrollment.query
+                .filter_by(user_id=user.id, semester=sem)
+                .join(Subject)
+                .filter(Subject.is_elective == True, Subject.elective_group == "pe_5")
+                .all()
+            )
+            for enr in old_enrs:
+                Mark.query.filter_by(user_id=user.id, subject_id=enr.subject_id).delete(synchronize_session=False)
+                db.session.delete(enr)
+
+            # Add new enrollments + blank marks
+            for subj in valid_subjects:
+                db.session.add(Enrollment(user_id=user.id, subject_id=subj.subject_id, semester=sem))
+                db.session.add(Mark(user_id=user.id, subject_id=subj.subject_id))
+
+        else:
+            # Sem 3/4: single specialisation elective
+            new_id_raw = request.form.get("elective_subject_id")
+            try:
+                new_id = int(new_id_raw)
+            except (ValueError, TypeError):
+                flash("Invalid elective selection.", "error")
+                return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+            new_subject = Subject.query.filter_by(
+                subject_id=new_id,
+                elective_group=elective_group,
+                is_elective=True,
+            ).first()
+            if not new_subject:
+                flash("Selected subject is not a valid elective for this group.", "error")
+                return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+            # Remove old elective enrollments + marks for this group (across Sem 3 & 4)
+            old_enrs = (
+                Enrollment.query
+                .filter_by(user_id=user.id)
+                .join(Subject)
+                .filter(Subject.is_elective == True, Subject.elective_group == elective_group)
+                .all()
+            )
+            for enr in old_enrs:
+                Mark.query.filter_by(user_id=user.id, subject_id=enr.subject_id).delete(synchronize_session=False)
+                db.session.delete(enr)
+
+            # Add new enrollment + blank mark.
+            # Re-enroll across both semesters that share this elective group.
+            enroll_sems = (1, 2) if elective_group == "lang_1_2" else (3, 4)
+            for enroll_sem in enroll_sems:
+                db.session.add(Enrollment(user_id=user.id, subject_id=new_subject.subject_id, semester=enroll_sem))
+            db.session.add(Mark(user_id=user.id, subject_id=new_subject.subject_id))
+
+        db.session.commit()
+        flash(f"Elective updated successfully for {user.name}.", "success")
+        return redirect(url_for("admin.admin_user_electives", user_id=user_id))
+
+    return render_template(
+        "admin.html",
+        section="electives",
+        user=user,
+        sem=sem,
+        elective_group=elective_group,
+        group_label=group_label,
+        can_change=can_change,
+        available_subjects=available_subjects,
+        current_elective_enrollments=current_elective_enrollments,
+    )
 
 
 @admin_bp.route("/rollover")
