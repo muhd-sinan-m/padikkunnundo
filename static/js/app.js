@@ -83,8 +83,15 @@ function formatDesktopName(name) {
   if (name.length >= 20) {
     const parts = name.trim().split(/\s+/);
     if (parts.length > 1) {
-      const firstPart = parts.slice(0, -1).join(" ");
-      const lastPart = parts[parts.length - 1];
+      let i = parts.length - 1;
+      while (i > 0 && parts[i].length <= 1) {
+        i--;
+      }
+      if (i === 0) {
+        i = parts.length - 1;
+      }
+      const firstPart = parts.slice(0, i).join(" ");
+      const lastPart = parts.slice(i).join(" ");
       return `${escHtml(firstPart)}<br class="desktop-only-br"> ${escHtml(lastPart)}`;
     }
   }
