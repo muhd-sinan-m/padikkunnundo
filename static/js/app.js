@@ -87,11 +87,12 @@ function formatDesktopName(name) {
       while (i > 0 && parts[i].length <= 1) {
         i--;
       }
-      if (i === 0) {
-        i = parts.length - 1;
+      let splitIdx = i + 1;
+      if (splitIdx >= parts.length || splitIdx <= 0) {
+        splitIdx = parts.length - 1;
       }
-      const firstPart = parts.slice(0, i).join(" ");
-      const lastPart = parts.slice(i).join(" ");
+      const firstPart = parts.slice(0, splitIdx).join(" ");
+      const lastPart = parts.slice(splitIdx).join(" ");
       return `${escHtml(firstPart)}<br class="desktop-only-br"> ${escHtml(lastPart)}`;
     }
   }

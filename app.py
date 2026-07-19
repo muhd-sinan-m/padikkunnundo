@@ -107,10 +107,11 @@ def create_app(config_class=Config) -> Flask:
                 i = len(parts) - 1
                 while i > 0 and len(parts[i]) <= 1:
                     i -= 1
-                if i == 0:
-                    i = len(parts) - 1
-                first_part = " ".join(parts[:i])
-                last_part = " ".join(parts[i:])
+                split_idx = i + 1
+                if split_idx >= len(parts) or split_idx <= 0:
+                    split_idx = len(parts) - 1
+                first_part = " ".join(parts[:split_idx])
+                last_part = " ".join(parts[split_idx:])
                 from markupsafe import Markup
                 return Markup(f'{first_part}<br class="desktop-only-br"> {last_part}')
         return name
