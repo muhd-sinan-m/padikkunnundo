@@ -80,7 +80,7 @@ function formatMark(value, max) {
 
 function formatDesktopName(name) {
   if (!name) return "";
-  if (name.length > 19) {
+  if (name.length >= 20) {
     const parts = name.trim().split(/\s+/);
     if (parts.length > 1) {
       const firstPart = parts.slice(0, -1).join(" ");

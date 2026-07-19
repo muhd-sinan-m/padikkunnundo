@@ -101,7 +101,7 @@ def create_app(config_class=Config) -> Flask:
     def format_desktop_name_filter(name):
         if not name:
             return ""
-        if len(name) > 19:
+        if len(name) >= 20:
             parts = name.split()
             if len(parts) > 1:
                 first_part = " ".join(parts[:-1])

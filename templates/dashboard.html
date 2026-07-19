@@ -14,7 +14,7 @@ endblock %}
     <div class="welcome-banner-date">Today • {{ user.course }}</div>
     <h1 class="welcome-banner-heading" id="greeting-text">
       Welcome back, <span class="greeting-name">
-        {%- if user.name and user.name|length > 18 -%}
+        {%- if user.name and user.name|length >= 20 -%}
           {{ user.name | format_desktop_name }}
         {%- else -%}
           {{ user.name.split()[0] if user.name else 'Student' }}
