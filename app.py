@@ -101,20 +101,24 @@ def create_app(config_class=Config) -> Flask:
     def format_desktop_name_filter(name):
         if not name:
             return ""
-        if len(name) >= 20:
-            parts = name.split()
+        parts = name.split()
+        if len(parts) > 1:
+            i = len(parts) - 1
+            while i >= 0 and len(parts[i]) <= 1:
+                i -= 1
+            initials_start = i + 1
+            if initials_start < len(parts):
+                initials = "".join(parts[initials_start:])
+                parts = parts[:initials_start] + [initials]
+        cleaned_name = " ".join(parts)
+
+        if len(cleaned_name) >= 20:
             if len(parts) > 1:
-                i = len(parts) - 1
-                while i > 0 and len(parts[i]) <= 1:
-                    i -= 1
-                split_idx = i + 1
-                if split_idx >= len(parts) or split_idx <= 0:
-                    split_idx = len(parts) - 1
-                first_part = " ".join(parts[:split_idx])
-                last_part = " ".join(parts[split_idx:])
+                first_part = " ".join(parts[:-1])
+                last_part = parts[-1]
                 from markupsafe import Markup
                 return Markup(f'{first_part}<br class="desktop-only-br"> {last_part}')
-        return name
+        return cleaned_name
 
     def ensure_schema() -> None:
         """Create missing tables when a local SQLite database is fresh."""

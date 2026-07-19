@@ -80,23 +80,28 @@ function formatMark(value, max) {
 
 function formatDesktopName(name) {
   if (!name) return "";
-  if (name.length >= 20) {
-    const parts = name.trim().split(/\s+/);
+  let parts = name.trim().split(/\s+/);
+  if (parts.length > 1) {
+    let i = parts.length - 1;
+    while (i >= 0 && parts[i].length <= 1) {
+      i--;
+    }
+    const initialsStart = i + 1;
+    if (initialsStart < parts.length) {
+      const initials = parts.slice(initialsStart).join("");
+      parts = parts.slice(0, initialsStart).concat([initials]);
+    }
+  }
+  const cleanedName = parts.join(" ");
+
+  if (cleanedName.length >= 20) {
     if (parts.length > 1) {
-      let i = parts.length - 1;
-      while (i > 0 && parts[i].length <= 1) {
-        i--;
-      }
-      let splitIdx = i + 1;
-      if (splitIdx >= parts.length || splitIdx <= 0) {
-        splitIdx = parts.length - 1;
-      }
-      const firstPart = parts.slice(0, splitIdx).join(" ");
-      const lastPart = parts.slice(splitIdx).join(" ");
+      const firstPart = parts.slice(0, -1).join(" ");
+      const lastPart = parts[parts.length - 1];
       return `${escHtml(firstPart)}<br class="desktop-only-br"> ${escHtml(lastPart)}`;
     }
   }
-  return escHtml(name);
+  return escHtml(cleanedName);
 }
 
 function getGreeting(name) {
