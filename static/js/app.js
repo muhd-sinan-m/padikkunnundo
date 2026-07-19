@@ -78,20 +78,34 @@ function formatMark(value, max) {
 
 /* ── Time-of-day greeting ────────────────────────────────────────────────── */
 
+function formatDesktopName(name) {
+  if (!name) return "";
+  if (name.length > 18) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length > 1) {
+      const firstPart = parts.slice(0, -1).join(" ");
+      const lastPart = parts[parts.length - 1];
+      return `${escHtml(firstPart)}<br class="desktop-only-br"> ${escHtml(lastPart)}`;
+    }
+  }
+  return escHtml(name);
+}
+
 function getGreeting(name) {
+  const formattedName = formatDesktopName(name);
   const h = new Date().getHours();
-  if (h < 12) return `Good morning, ${name}!`;
-  if (h < 17) return `Good afternoon, ${name}!`;
-  return `Good evening, ${name}!`;
+  if (h < 12) return `Good morning, ${formattedName}!`;
+  if (h < 17) return `Good afternoon, ${formattedName}!`;
+  return `Good evening, ${formattedName}!`;
 }
 
 /* ── Notification panel ─────────────────────────────────────────────────── */
 
 (function initNoticePanel() {
-  const openBtn   = document.getElementById('open-notice-panel');
-  const closeBtn  = document.getElementById('close-notice-panel');
-  const overlay   = document.getElementById('notice-overlay');
-  const panel     = document.getElementById('notice-panel');
+  const openBtn = document.getElementById('open-notice-panel');
+  const closeBtn = document.getElementById('close-notice-panel');
+  const overlay = document.getElementById('notice-overlay');
+  const panel = document.getElementById('notice-panel');
 
   if (!openBtn || !panel) return;   // Not on a page that has the panel.
 
@@ -124,10 +138,10 @@ function getGreeting(name) {
 /* ── Mobile sidebar drawer ────────────────────────────────────────────────── */
 
 (function initMobileSidebar() {
-  const menuBtn    = document.getElementById('mobile-menu-btn');
-  const closeBtn   = document.getElementById('sidebar-close-btn');
-  const overlay    = document.getElementById('sidebar-overlay');
-  const sidebar    = document.querySelector('.sidebar');
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const closeBtn = document.getElementById('sidebar-close-btn');
+  const overlay = document.getElementById('sidebar-overlay');
+  const sidebar = document.querySelector('.sidebar');
 
   if (!menuBtn || !sidebar) return; // Not on a page with sidebar
 

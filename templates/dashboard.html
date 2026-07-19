@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard — padikkunnundo.app{% endblock %}
-{% block description %}Your academic dashboard — marks, grade targets, and exam preparation for {{ user.name }}.{% endblock %}
+{% block description %}Your academic dashboard — marks, grade targets, and exam preparation for {{ user.name }}.{%
+endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -12,7 +13,13 @@
   <div class="welcome-banner-content">
     <div class="welcome-banner-date">Today • {{ user.course }}</div>
     <h1 class="welcome-banner-heading" id="greeting-text">
-      Welcome back, <span class="greeting-name">{{ user.name.split()[0] if user.name else 'Student' }}</span>
+      Welcome back, <span class="greeting-name">
+        {%- if user.name and user.name|length > 18 -%}
+          {{ user.name | format_desktop_name }}
+        {%- else -%}
+          {{ user.name.split()[0] if user.name else 'Student' }}
+        {%- endif -%}
+      </span>
     </h1>
     <div class="welcome-banner-sub" id="user-context">
       Semester {{ user.semester }}<br>Ready to check your progress?
@@ -20,7 +27,8 @@
   </div>
   <div class="welcome-banner-illustration">
     <div class="student-photo-bubble" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/dashboard_logo.webp') }}" alt="Dashboard illustration" loading="eager">
+      <img src="{{ url_for('static', filename='img/dashboard_logo.webp') }}" alt="Dashboard illustration"
+        loading="eager">
     </div>
   </div>
 </section>
@@ -31,7 +39,8 @@
   <div class="stat-card">
     <div class="stat-card-icon blue" aria-hidden="true">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
       </svg>
     </div>
     <div class="stat-card-body">
@@ -42,7 +51,7 @@
   <div class="stat-card">
     <div class="stat-card-icon amber" aria-hidden="true">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
       </svg>
     </div>
     <div class="stat-card-body">
@@ -53,7 +62,7 @@
   <div class="stat-card">
     <div class="stat-card-icon green" aria-hidden="true">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"/>
+        <polyline points="20 6 9 17 4 12" />
       </svg>
     </div>
     <div class="stat-card-body">
@@ -103,7 +112,8 @@
       <div class="platform-card-desc">Grade & mark analysis</div>
     </div>
   </a>
-  <a href="{{ url_for('pages.go_to_doubtundo') }}" target="_blank" rel="noopener" class="platform-card" id="card-doubtundo">
+  <a href="{{ url_for('pages.go_to_doubtundo') }}" target="_blank" rel="noopener" class="platform-card"
+    id="card-doubtundo">
     <div class="platform-card-icon doubtundo" aria-hidden="true">
       <img src="{{ url_for('static', filename='img/logo_doubtndo.webp') }}" alt="" class="platform-card-img">
     </div>

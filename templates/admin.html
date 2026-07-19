@@ -1,6 +1,6 @@
-
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,13 +12,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-charts.css') }}" />
 </head>
+
 <body>
   <div class="app-layout">
     <!-- Sidebar -->
     <aside class="sidebar" aria-label="Admin navigation">
       <div class="sidebar-brand">
         <div class="sidebar-brand-icon">
-          <img src="{{ url_for('static', filename='img/logo.webp') }}" alt="logo" style="width:60px;height:60px;object-fit:contain;filter:brightness(0) invert(1);" />
+          <img src="{{ url_for('static', filename='img/logo.webp') }}" alt="logo"
+            style="width:60px;height:60px;object-fit:contain;filter:brightness(0) invert(1);" />
         </div>
         <div class="sidebar-brand-text">
           <div class="sidebar-brand-name">Admin</div>
@@ -27,54 +29,64 @@
       </div>
 
       <div class="sidebar-nav">
-        <a class="sidebar-nav-item {% if section == 'dashboard' %}active{% endif %}" href="{{ url_for('admin.admin_dashboard') }}">
+        <a class="sidebar-nav-item {% if section == 'dashboard' %}active{% endif %}"
+          href="{{ url_for('admin.admin_dashboard') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9.5 12 3l9 6.5"/>
-              <path d="M5 10v10h14V10"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5 12 3l9 6.5" />
+              <path d="M5 10v10h14V10" />
             </svg>
           </span>
           Dashboard
         </a>
-        <a class="sidebar-nav-item {% if section == 'users' or section == 'user_edit' or section == 'electives' %}active{% endif %}" href="{{ url_for('admin.admin_users_list') }}">
+        <a class="sidebar-nav-item {% if section == 'users' or section == 'user_edit' or section == 'electives' %}active{% endif %}"
+          href="{{ url_for('admin.admin_users_list') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="8.5" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </span>
           Users
         </a>
-        <a class="sidebar-nav-item {% if section == 'subjects' or section == 'subject_add' or section == 'subject_edit' %}active{% endif %}" href="{{ url_for('admin.admin_subjects_list') }}">
+        <a class="sidebar-nav-item {% if section == 'subjects' or section == 'subject_add' or section == 'subject_edit' %}active{% endif %}"
+          href="{{ url_for('admin.admin_subjects_list') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20"/>
-              <path d="M20 2H7a3 3 0 0 0-3 3v14"/>
-              <path d="M8 6h8"/>
-              <path d="M8 10h8"/>
-              <path d="M8 14h5"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" />
+              <path d="M20 2H7a3 3 0 0 0-3 3v14" />
+              <path d="M8 6h8" />
+              <path d="M8 10h8" />
+              <path d="M8 14h5" />
             </svg>
           </span>
           Subjects
         </a>
-        <a class="sidebar-nav-item {% if section == 'announcements' %}active{% endif %}" href="{{ url_for('admin.admin_announcements_list') }}">
+        <a class="sidebar-nav-item {% if section == 'announcements' %}active{% endif %}"
+          href="{{ url_for('admin.admin_announcements_list') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
           </span>
           Announcements
         </a>
-        <a class="sidebar-nav-item {% if section == 'rollover' %}active{% endif %}" href="{{ url_for('admin.admin_rollover') }}">
+        <a class="sidebar-nav-item {% if section == 'rollover' %}active{% endif %}"
+          href="{{ url_for('admin.admin_rollover') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 2l-2 2 2 2"/>
-              <path d="M3 15a9 9 0 0 0 15 6"/>
-              <path d="M3 4l2 2-2 2"/>
-              <path d="M21 9a9 9 0 0 0-15-6"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 2l-2 2 2 2" />
+              <path d="M3 15a9 9 0 0 0 15 6" />
+              <path d="M3 4l2 2-2 2" />
+              <path d="M21 9a9 9 0 0 0-15-6" />
             </svg>
           </span>
           Semester Rollover
@@ -84,16 +96,17 @@
 
         <a class="sidebar-nav-item" href="{{ url_for('pages.dashboard') }}">
           <span class="nav-icon" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 9 3 12l7 3"/>
-              <path d="M21 12H3"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 9 3 12l7 3" />
+              <path d="M21 12H3" />
             </svg>
           </span>
           Back to App
         </a>
       </div>
 
-        <div class="sidebar-user">
+      <div class="sidebar-user">
         <div class="sidebar-user-avatar">{{ (user.name or 'A')[0]|upper if user is defined else 'A' }}</div>
         <div class="sidebar-user-info">
           <div class="sidebar-user-name">{{ user.name if user is defined else '' }}</div>
@@ -106,10 +119,11 @@
         <form method="get" action="{{ url_for('auth.logout') }}" style="margin:0;">
 
           <button class="sidebar-logout" type="submit" title="Logout" aria-label="Logout">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <path d="M16 17l5-5-5-5"/>
-              <path d="M21 12H9"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
             </svg>
           </button>
         </form>
@@ -128,517 +142,591 @@
 
       <section class="page-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
-              {% for cat, msg in messages %}
-                {% if cat == 'success' %}
-                  <div class="login-success">{{ msg }}</div>
-                {% else %}
-                  <div class="login-error">{{ msg }}</div>
-                {% endif %}
-              {% endfor %}
-            </div>
+        {% if messages %}
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+          {% for cat, msg in messages %}
+          {% if cat == 'success' %}
+          <div class="login-success">{{ msg }}</div>
+          {% else %}
+          <div class="login-error">{{ msg }}</div>
           {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
 
         <!-- Dashboard -->
         {% if section == 'dashboard' %}
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-card-icon blue">👤</div>
-              <div class="stat-card-body">
-                <div class="stat-card-value">{{ stats.total_users }}</div>
-                <div class="stat-card-label">Total Users</div>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-card-icon purple">🧮</div>
-              <div class="stat-card-body">
-                <div class="stat-card-value">{{ stats.users_per_semester.values()|sum }}</div>
-                <div class="stat-card-label">Users Across Semesters</div>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-card-icon green">✅</div>
-              <div class="stat-card-body">
-                <div class="stat-card-value">{{ '%.1f'|format(stats.marks_entered_pct) }}%</div>
-                <div class="stat-card-label">Marks Entered %</div>
-              </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon blue">👤</div>
+            <div class="stat-card-body">
+              <div class="stat-card-value">{{ stats.total_users }}</div>
+              <div class="stat-card-label">Total Users</div>
             </div>
           </div>
 
-          <div style="margin-bottom:22px;">
-            <div class="section-heading" style="margin-bottom:12px;">
-              Marks Overview
-            </div>
-            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Mark Rows</div>
-              <div style="padding:18px 20px;display:flex;gap:18px;flex-wrap:wrap;">
-                <div style="min-width:220px;">
-                  <div style="font-size:12px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Total</div>
-                  <div style="font-size:28px;font-weight:900;">{{ marks_overview.total_marks_rows }}</div>
-                </div>
-                <div style="min-width:220px;">
-                  <div style="font-size:12px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Entered</div>
-                  <div style="font-size:28px;font-weight:900;">{{ marks_overview.marks_entered_rows }}</div>
-                </div>
-              </div>
+          <div class="stat-card">
+            <div class="stat-card-icon purple">🧮</div>
+            <div class="stat-card-body">
+              <div class="stat-card-value">{{ stats.users_per_semester.values()|sum }}</div>
+              <div class="stat-card-label">Users Across Semesters</div>
             </div>
           </div>
 
-          <div style="margin-bottom:22px;">
-            <div class="section-heading" style="margin-bottom:12px;">Users Count</div>
+          <div class="stat-card">
+            <div class="stat-card-icon green">✅</div>
+            <div class="stat-card-body">
+              <div class="stat-card-value">{{ '%.1f'|format(stats.marks_entered_pct) }}%</div>
+              <div class="stat-card-label">Marks Entered %</div>
+            </div>
+          </div>
+        </div>
 
-            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Users per day (last 14)</div>
-              <div style="padding:18px 20px;">
-                {% if users_per_date|length == 0 %}
-                  <div class="empty-state">
-                    <div class="empty-state-title">No user activity</div>
-                    <div class="empty-state-desc">Users have not been created yet.</div>
+        <div style="margin-bottom:22px;">
+          <div class="section-heading" style="margin-bottom:12px;">
+            Marks Overview
+          </div>
+          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Mark Rows</div>
+            <div style="padding:18px 20px;display:flex;gap:18px;flex-wrap:wrap;">
+              <div style="min-width:220px;">
+                <div
+                  style="font-size:12px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.6px;">
+                  Total</div>
+                <div style="font-size:28px;font-weight:900;">{{ marks_overview.total_marks_rows }}</div>
+              </div>
+              <div style="min-width:220px;">
+                <div
+                  style="font-size:12px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:.6px;">
+                  Entered</div>
+                <div style="font-size:28px;font-weight:900;">{{ marks_overview.marks_entered_rows }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:22px;">
+          <div class="section-heading" style="margin-bottom:12px;">Users Count</div>
+
+          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Users per day
+              (last 14)</div>
+            <div style="padding:18px 20px;">
+              {% if users_per_date|length == 0 %}
+              <div class="empty-state">
+                <div class="empty-state-title">No user activity</div>
+                <div class="empty-state-desc">Users have not been created yet.</div>
+              </div>
+              {% else %}
+              <div class="users-chart" role="img" aria-label="Users count chart">
+                {% set max_val = (users_per_date|map(attribute='count')|max) if users_per_date|length > 0 else 0 %}
+                <div class="users-chart-bars">
+                  {% for p in users_per_date %}
+                  {% set c = p.count %}
+                  {% set h = ( (c / max_val) * 100 ) if max_val and max_val > 0 else 0 %}
+                  <div class="users-chart-bar" title="{{ p.date }}: {{ c }}">
+                    <div class="users-chart-bar-fill" style="height: {{ h }}%;"></div>
+                    <div class="users-chart-bar-label">{{ p.date }}</div>
                   </div>
-                {% else %}
-                  <div class="users-chart" role="img" aria-label="Users count chart">
-                    {% set max_val = (users_per_date|map(attribute='count')|max) if users_per_date|length > 0 else 0 %}
-                    <div class="users-chart-bars">
-                      {% for p in users_per_date %}
-                        {% set c = p.count %}
-                        {% set h = ( (c / max_val) * 100 ) if max_val and max_val > 0 else 0 %}
-                        <div class="users-chart-bar" title="{{ p.date }}: {{ c }}">
-                          <div class="users-chart-bar-fill" style="height: {{ h }}%;"></div>
-                          <div class="users-chart-bar-label">{{ p.date }}</div>
-                        </div>
-                      {% endfor %}
-                    </div>
-                    <div class="users-chart-xaxis">
-                      <span>Old</span>
-                      <span style="margin-left:auto;">New</span>
-                    </div>
-                  </div>
-                {% endif %}
+                  {% endfor %}
+                </div>
+                <div class="users-chart-xaxis">
+                  <span>Old</span>
+                  <span style="margin-left:auto;">New</span>
+                </div>
               </div>
+              {% endif %}
             </div>
           </div>
+        </div>
         {% endif %}
 
         <!-- Users -->
         {% if section == 'users' %}
-          <div class="section-heading" style="margin-bottom:12px;">
-            Users
-          </div>
+        <div class="section-heading" style="margin-bottom:12px;">
+          Users
+        </div>
 
-          <form method="get" action="{{ url_for('admin.admin_users_list') }}" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;">
-            <input name="q" placeholder="Search by name or email" value="{{ request.args.get('q','') }}"
-              style="flex:1; padding:10px 14px; border:1.5px solid var(--border-color); border-radius:14px; background:#fff;" />
-            <button class="btn-primary" style="width:auto;padding:0.88rem 1.2rem;" type="submit">Search</button>
-          </form>
+        <form method="get" action="{{ url_for('admin.admin_users_list') }}"
+          style="margin-bottom:16px;display:flex;gap:10px;align-items:center;">
+          <input name="q" placeholder="Search by name or email" value="{{ request.args.get('q','') }}"
+            style="flex:1; padding:10px 14px; border:1.5px solid var(--border-color); border-radius:14px; background:#fff;" />
+          <button class="btn-primary" style="width:auto;padding:0.88rem 1.2rem;" type="submit">Search</button>
+        </form>
 
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">All Users</div>
-            <div style="padding:12px 20px;overflow:auto;">
-              <table style="width:100%;border-collapse:collapse;min-width:860px;">
-                <thead>
-                  <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
-                    <th style="padding:10px 6px;">Name</th>
-                    <th style="padding:10px 6px;">Email</th>
-                    <th style="padding:10px 6px;">Semester</th>
-                    <th style="padding:10px 6px;">Elective</th>
-                    <th style="padding:10px 6px;">Login Method</th>
-                    <th style="padding:10px 6px;">Created</th>
-                    <th style="padding:10px 6px;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for u in users %}
-                    <tr style="border-top:1px solid var(--border-color);">
-                      <td style="padding:10px 6px;font-weight:800;">{{ u.name }}</td>
-                      <td style="padding:10px 6px;">{{ u.email }}</td>
-                      <td style="padding:10px 6px;font-weight:800;">{{ u.semester or '-' }}</td>
-                      <td style="padding:10px 6px;">
-                        {% if u.elective and u.elective != '—' %}
-                          <span class="grade-pill status-green" style="font-size:11px;">{{ u.elective }}</span>
-                        {% else %}
-                          <span style="color:var(--text-secondary);font-size:12px;">—</span>
-                        {% endif %}
-                      </td>
-                      <td style="padding:10px 6px;">{{ u.login_method }}</td>
-                      <td style="padding:10px 6px;color:var(--text-secondary);font-size:12px;">{{ u.created_at }}</td>
-                      <td style="padding:10px 6px;white-space:nowrap;">
-                        <a class="subject-card-link" href="{{ url_for('admin.admin_user_edit', user_id=u.id) }}" style="margin-right:8px;">Edit</a>
-                        <a class="subject-card-link" href="{{ url_for('admin.admin_user_electives', user_id=u.id) }}" style="margin-right:8px;border-color:var(--accent-blue,#4f8ef7);color:var(--accent-blue,#4f8ef7);">Electives</a>
-                        <form method="post" action="{{ url_for('admin.admin_user_delete', user_id=u.id) }}" style="display:inline;" onsubmit="return confirm('Delete user? This will permanently remove the user, enrollments and marks.');">
-                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                          <button type="submit" class="subject-card-link" style="border-color:var(--accent-red);color:var(--accent-red);">Delete</button>
-                        </form>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">All Users</div>
+          <div style="padding:12px 20px;overflow:auto;">
+            <table style="width:100%;border-collapse:collapse;min-width:860px;">
+              <thead>
+                <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
+                  <th style="padding:10px 6px;">Name</th>
+                  <th style="padding:10px 6px;">Email</th>
+                  <th style="padding:10px 6px;">Semester</th>
+                  <th style="padding:10px 6px;">Elective</th>
+                  <th style="padding:10px 6px;">Login Method</th>
+                  <th style="padding:10px 6px;">Created</th>
+                  <th style="padding:10px 6px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in users %}
+                <tr style="border-top:1px solid var(--border-color);">
+                  <td style="padding:10px 6px;font-weight:800;">{{ u.name }}</td>
+                  <td style="padding:10px 6px;">{{ u.email }}</td>
+                  <td style="padding:10px 6px;font-weight:800;">{{ u.semester or '-' }}</td>
+                  <td style="padding:10px 6px;">
+                    {% if u.elective and u.elective != '—' %}
+                    <span class="grade-pill status-green" style="font-size:11px;">{{ u.elective }}</span>
+                    {% else %}
+                    <span style="color:var(--text-secondary);font-size:12px;">—</span>
+                    {% endif %}
+                  </td>
+                  <td style="padding:10px 6px;">{{ u.login_method }}</td>
+                  <td style="padding:10px 6px;color:var(--text-secondary);font-size:12px;">{{ u.created_at }}</td>
+                  <td style="padding:10px 6px;white-space:nowrap;">
+                    <a class="subject-card-link" href="{{ url_for('admin.admin_user_edit', user_id=u.id) }}"
+                      style="margin-right:8px;">Edit</a>
+                    <a class="subject-card-link" href="{{ url_for('admin.admin_user_electives', user_id=u.id) }}"
+                      style="margin-right:8px;border-color:var(--accent-blue,#4f8ef7);color:var(--accent-blue,#4f8ef7);">Electives</a>
+                    <form method="post" action="{{ url_for('admin.admin_user_delete', user_id=u.id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete user? This will permanently remove the user, enrollments and marks.');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="subject-card-link"
+                        style="border-color:var(--accent-red);color:var(--accent-red);">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
+        </div>
         {% endif %}
 
         <!-- Electives -->
         {% if section == 'electives' %}
-          <div style="margin-bottom:18px;display:flex;align-items:center;gap:14px;">
-            <a href="{{ url_for('admin.admin_users_list') }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);text-decoration:none;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 5-7 7 7 7"/></svg>
-              Back to Users
-            </a>
-            <div class="section-heading" style="margin:0;">Student Elective Management</div>
-          </div>
+        <div style="margin-bottom:18px;display:flex;align-items:center;gap:14px;">
+          <a href="{{ url_for('admin.admin_users_list') }}"
+            style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text-secondary);text-decoration:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5" />
+              <path d="m12 5-7 7 7 7" />
+            </svg>
+            Back to Users
+          </a>
+          <div class="section-heading" style="margin:0;">Student Elective Management</div>
+        </div>
 
-          <!-- Student info card -->
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;padding:20px 22px;margin-bottom:22px;display:flex;align-items:center;gap:18px;">
-            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;">
-              {{ (user.name or 'S')[0]|upper }}
+        <!-- Student info card -->
+        <div
+          style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;padding:20px 22px;margin-bottom:22px;display:flex;align-items:center;gap:18px;">
+          <div
+            style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;">
+            {{ (user.name or 'S')[0]|upper }}
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:18px;font-weight:900;">{{ user.name }}</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">{{ user.email }}</div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div
+              style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
+              <div
+                style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">
+                Semester</div>
+              <div style="font-size:22px;font-weight:900;margin-top:2px;">{{ sem or '—' }}</div>
             </div>
-            <div style="flex:1;">
-              <div style="font-size:18px;font-weight:900;">{{ user.name }}</div>
-              <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">{{ user.email }}</div>
-            </div>
-            <div style="display:flex;gap:10px;">
-              <div style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
-                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">Semester</div>
-                <div style="font-size:22px;font-weight:900;margin-top:2px;">{{ sem or '—' }}</div>
-              </div>
-              <div style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
-                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">Group</div>
-                <div style="font-size:13px;font-weight:900;margin-top:4px;">{{ group_label }}</div>
-              </div>
+            <div
+              style="background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:12px;padding:10px 16px;text-align:center;">
+              <div
+                style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">
+                Group</div>
+              <div style="font-size:13px;font-weight:900;margin-top:4px;">{{ group_label }}</div>
             </div>
           </div>
+        </div>
 
-          <!-- Current electives -->
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:22px;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;display:flex;align-items:center;gap:10px;">
-              <span>Current Elective(s)</span>
+        <!-- Current electives -->
+        <div
+          style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:22px;">
+          <div
+            style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;display:flex;align-items:center;gap:10px;">
+            <span>Current Elective(s)</span>
+          </div>
+          <div style="padding:16px 20px;">
+            {% if current_elective_enrollments %}
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+              {% for enr in current_elective_enrollments %}
+              <div
+                style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));border:1.5px solid rgba(99,102,241,.25);border-radius:14px;padding:12px 18px;">
+                <div style="font-weight:900;font-size:15px;">{{ enr.subject.subject_name }}</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ enr.subject.elective_group }}
+                  • {{ enr.subject.credit }} credits • Sem {{ enr.semester }}</div>
+              </div>
+              {% endfor %}
             </div>
-            <div style="padding:16px 20px;">
-              {% if current_elective_enrollments %}
-                <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                  {% for enr in current_elective_enrollments %}
-                    <div style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));border:1.5px solid rgba(99,102,241,.25);border-radius:14px;padding:12px 18px;">
-                      <div style="font-weight:900;font-size:15px;">{{ enr.subject.subject_name }}</div>
-                      <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">{{ enr.subject.elective_group }} • {{ enr.subject.credit }} credits • Sem {{ enr.semester }}</div>
-                    </div>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-state-title">No elective enrolled</div>
+              <div class="empty-state-desc">This student has not been enrolled in any elective for their current
+                semester.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if not sem %}
+        <div
+          style="background:var(--color-red-bg,#fef2f2);border:1.5px solid var(--color-red,#ef4444);border-radius:16px;padding:16px 20px;">
+          <div style="font-weight:900;color:var(--color-red,#ef4444);">No semester set</div>
+          <div style="margin-top:6px;font-size:13px;">This student has not completed onboarding. Set a semester first
+            via Edit User.</div>
+        </div>
+
+        {% elif elective_group == 'pe_5' %}
+        <!-- Sem 5/6 — 3 professional electives -->
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change
+            Professional Electives</div>
+          <div style="padding:18px 20px;">
+            {% if available_subjects %}
+            <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" id="pe5-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Select exactly
+                <strong>3</strong> professional electives. Current marks for removed electives will be deleted.</div>
+              <div
+                style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:18px;"
+                id="pe5-grid">
+                {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
+                {% for s in available_subjects %}
+                <label
+                  style="display:flex;align-items:flex-start;gap:12px;background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s;"
+                  class="pe5-option">
+                  <input type="checkbox" name="elective_subject_ids" value="{{ s.subject_id }}"
+                    style="margin-top:2px;width:16px;height:16px;accent-color:#6366f1;" {% if s.subject_id in
+                    current_ids %}checked{% endif %} onchange="updatePe5Count()">
+                  <div>
+                    <div style="font-weight:800;font-size:14px;">{{ s.subject_name }}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">{{ s.credit }} credits</div>
+                  </div>
+                </label>
+                {% endfor %}
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div id="pe5-count-msg" style="font-size:13px;font-weight:700;color:var(--text-secondary);">0 of 3
+                  selected</div>
+                <button class="btn-primary" type="submit" id="pe5-submit" style="width:auto;padding:0.88rem 1.4rem;"
+                  disabled>Save Electives</button>
+              </div>
+            </form>
+            <script>
+              function updatePe5Count() {
+                const boxes = document.querySelectorAll('input[name="elective_subject_ids"]');
+                const checked = Array.from(boxes).filter(b => b.checked).length;
+                const msg = document.getElementById('pe5-count-msg');
+                const btn = document.getElementById('pe5-submit');
+                msg.textContent = checked + ' of 3 selected';
+                msg.style.color = checked === 3 ? '#22c55e' : checked > 3 ? '#ef4444' : 'var(--text-secondary)';
+                btn.disabled = checked !== 3;
+              }
+              // Initialise on load
+              updatePe5Count();
+            </script>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-state-title">No professional electives available</div>
+              <div class="empty-state-desc">No active subjects with elective_group=pe_5 found. Add them via Subjects
+                first.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% else %}
+        <!-- Sem 3/4 — single specialisation elective -->
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change
+            Specialisation</div>
+          <div style="padding:18px 20px;">
+            {% if available_subjects %}
+            <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" class="auth-form"
+              style="max-width:520px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">
+                Changing the elective will remove existing elective marks and create a fresh mark row.
+                {% if elective_group == 'lang_1_2' %}This applies across Sem 1 and Sem 2.{% else %}This applies across
+                Sem 3 and Sem 4.{% endif %}
+              </div>
+              {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
+              <label style="margin-bottom:14px;display:block;">
+                <div
+                  style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+                  Select Specialisation</div>
+                <select name="elective_subject_id"
+                  style="width:100%;padding:12px 14px;border:1.5px solid var(--border-color);border-radius:14px;background:#fff;font-family:inherit;font-size:14px;"
+                  required>
+                  <option value="" disabled {% if not current_ids %}selected{% endif %}>— choose a specialisation —
+                  </option>
+                  {% for s in available_subjects %}
+                  <option value="{{ s.subject_id }}" {% if s.subject_id in current_ids %}selected{% endif %}>{{
+                    s.subject_name }} ({{ s.credit }} cr)</option>
                   {% endfor %}
-                </div>
-              {% else %}
-                <div class="empty-state">
-                  <div class="empty-state-title">No elective enrolled</div>
-                  <div class="empty-state-desc">This student has not been enrolled in any elective for their current semester.</div>
-                </div>
-              {% endif %}
+                </select>
+              </label>
+              <button class="btn-primary" type="submit" style="width:auto;padding:0.88rem 1.4rem;"
+                onclick="return confirm('Change this student\'s elective? Their old elective marks will be permanently deleted.');">Save
+                Elective</button>
+            </form>
+            {% else %}
+            <div class="empty-state">
+              <div class="empty-state-title">No specialisation subjects available</div>
+              <div class="empty-state-desc">No active subjects with elective_group=spec_3_4 found. Add them via Subjects
+                first.</div>
             </div>
+            {% endif %}
           </div>
-
-          {% if not sem %}
-            <div style="background:var(--color-red-bg,#fef2f2);border:1.5px solid var(--color-red,#ef4444);border-radius:16px;padding:16px 20px;">
-              <div style="font-weight:900;color:var(--color-red,#ef4444);">No semester set</div>
-              <div style="margin-top:6px;font-size:13px;">This student has not completed onboarding. Set a semester first via Edit User.</div>
-            </div>
-
-          {% elif elective_group == 'pe_5' %}
-            <!-- Sem 5/6 — 3 professional electives -->
-            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change Professional Electives</div>
-              <div style="padding:18px 20px;">
-                {% if available_subjects %}
-                  <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" id="pe5-form">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Select exactly <strong>3</strong> professional electives. Current marks for removed electives will be deleted.</div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:18px;" id="pe5-grid">
-                      {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
-                      {% for s in available_subjects %}
-                        <label style="display:flex;align-items:flex-start;gap:12px;background:var(--bg-secondary);border:1.5px solid var(--border-color);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" class="pe5-option">
-                          <input type="checkbox" name="elective_subject_ids" value="{{ s.subject_id }}" style="margin-top:2px;width:16px;height:16px;accent-color:#6366f1;" {% if s.subject_id in current_ids %}checked{% endif %} onchange="updatePe5Count()">
-                          <div>
-                            <div style="font-weight:800;font-size:14px;">{{ s.subject_name }}</div>
-                            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">{{ s.credit }} credits</div>
-                          </div>
-                        </label>
-                      {% endfor %}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:14px;">
-                      <div id="pe5-count-msg" style="font-size:13px;font-weight:700;color:var(--text-secondary);">0 of 3 selected</div>
-                      <button class="btn-primary" type="submit" id="pe5-submit" style="width:auto;padding:0.88rem 1.4rem;" disabled>Save Electives</button>
-                    </div>
-                  </form>
-                  <script>
-                    function updatePe5Count() {
-                      const boxes = document.querySelectorAll('input[name="elective_subject_ids"]');
-                      const checked = Array.from(boxes).filter(b => b.checked).length;
-                      const msg = document.getElementById('pe5-count-msg');
-                      const btn = document.getElementById('pe5-submit');
-                      msg.textContent = checked + ' of 3 selected';
-                      msg.style.color = checked === 3 ? '#22c55e' : checked > 3 ? '#ef4444' : 'var(--text-secondary)';
-                      btn.disabled = checked !== 3;
-                    }
-                    // Initialise on load
-                    updatePe5Count();
-                  </script>
-                {% else %}
-                  <div class="empty-state">
-                    <div class="empty-state-title">No professional electives available</div>
-                    <div class="empty-state-desc">No active subjects with elective_group=pe_5 found. Add them via Subjects first.</div>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-
-          {% else %}
-            <!-- Sem 3/4 — single specialisation elective -->
-            <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-              <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Change Specialisation</div>
-              <div style="padding:18px 20px;">
-                {% if available_subjects %}
-                  <form method="post" action="{{ url_for('admin.admin_user_electives', user_id=user.id) }}" class="auth-form" style="max-width:520px;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">
-                      Changing the elective will remove existing elective marks and create a fresh mark row.
-                      {% if elective_group == 'lang_1_2' %}This applies across Sem 1 and Sem 2.{% else %}This applies across Sem 3 and Sem 4.{% endif %}
-                    </div>
-                    {% set current_ids = current_elective_enrollments|map(attribute='subject_id')|list %}
-                    <label style="margin-bottom:14px;display:block;">
-                      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Select Specialisation</div>
-                      <select name="elective_subject_id" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-color);border-radius:14px;background:#fff;font-family:inherit;font-size:14px;" required>
-                        <option value="" disabled {% if not current_ids %}selected{% endif %}>— choose a specialisation —</option>
-                        {% for s in available_subjects %}
-                          <option value="{{ s.subject_id }}" {% if s.subject_id in current_ids %}selected{% endif %}>{{ s.subject_name }} ({{ s.credit }} cr)</option>
-                        {% endfor %}
-                      </select>
-                    </label>
-                    <button class="btn-primary" type="submit" style="width:auto;padding:0.88rem 1.4rem;" onclick="return confirm('Change this student\'s elective? Their old elective marks will be permanently deleted.');">Save Elective</button>
-                  </form>
-                {% else %}
-                  <div class="empty-state">
-                    <div class="empty-state-title">No specialisation subjects available</div>
-                    <div class="empty-state-desc">No active subjects with elective_group=spec_3_4 found. Add them via Subjects first.</div>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-          {% endif %}
+        </div>
+        {% endif %}
         {% endif %}
 
         <!-- User edit -->
         {% if section == 'user_edit' %}
-          <div class="section-heading" style="margin-bottom:12px;">Edit User</div>
-          <form method="post" action="{{ url_for('admin.admin_user_edit', user_id=user.id) }}" class="auth-form" style="max-width:520px;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>
-              Name
-              <input name="name" value="{{ user.name }}" required />
-            </label>
-            <label>
-              Email
-              <input name="email" type="email" value="{{ user.email }}" required />
-            </label>
-            <label>
-              Semester
-              <input name="semester" type="number" min="1" max="6" value="{{ user.semester }}" />
-            </label>
-            <label>
-              Elective
-              <input name="elective" value="" placeholder="(not persisted in current schema)" disabled style="opacity:.7;" />
-              <div class="field-note">Current schema does not store elective selection on User directly.</div>
-            </label>
+        <div class="section-heading" style="margin-bottom:12px;">Edit User</div>
+        <form method="post" action="{{ url_for('admin.admin_user_edit', user_id=user.id) }}" class="auth-form"
+          style="max-width:520px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>
+            Name
+            <input name="name" value="{{ user.name }}" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" value="{{ user.email }}" required />
+          </label>
+          <label>
+            Semester
+            <input name="semester" type="number" min="1" max="6" value="{{ user.semester }}" />
+          </label>
+          <label>
+            Elective
+            <input name="elective" value="" placeholder="(not persisted in current schema)" disabled
+              style="opacity:.7;" />
+            <div class="field-note">Current schema does not store elective selection on User directly.</div>
+          </label>
 
-            <button class="btn-primary" type="submit">Save</button>
-          </form>
+          <button class="btn-primary" type="submit">Save</button>
+        </form>
         {% endif %}
 
         <!-- Subjects -->
         {% if section == 'subjects' %}
-          <div class="section-heading" style="margin-bottom:12px;">Subjects</div>
-          <div style="margin-bottom:16px;">
-            <a class="subject-card-link" href="{{ url_for('admin.admin_subject_add') }}">+ Add Subject</a>
-          </div>
+        <div class="section-heading" style="margin-bottom:12px;">Subjects</div>
+        <div style="margin-bottom:16px;">
+          <a class="subject-card-link" href="{{ url_for('admin.admin_subject_add') }}">+ Add Subject</a>
+        </div>
 
-          {% for sem, subs in subjects_grouped.items() %}
-            <div style="margin-bottom:18px;">
-              <div style="font-size:13px;font-weight:900;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px;margin:8px 0;">Semester {{ sem }}</div>
-              <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-                <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);font-weight:800;">{{ subs|length }} Subjects</div>
-                <div style="padding:10px 18px;overflow:auto;">
-                  <table style="width:100%;border-collapse:collapse;min-width:740px;">
-                    <thead>
-                      <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
-                        <th style="padding:10px 6px;">Name</th>
-                        <th style="padding:10px 6px;">Credits</th>
-                        <th style="padding:10px 6px;">Active</th>
-                        <th style="padding:10px 6px;">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for s in subs %}
-                        <tr style="border-top:1px solid var(--border-color);">
-                          <td style="padding:10px 6px;font-weight:800;">{{ s.subject_name }}</td>
-                          <td style="padding:10px 6px;">{{ s.credit }}</td>
-                          <td style="padding:10px 6px;">
-                            <span class="grade-pill status-green">Active</span>
-                          </td>
-
-                          <td style="padding:10px 6px;white-space:nowrap;">
-                            <a class="subject-card-link" href="{{ url_for('admin.admin_subject_edit', subject_id=s.subject_id) }}">Edit</a>
-                          </td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        {% endif %}
-
-        <!-- Subject add -->
-        {% if section == 'subject_add' %}
-          <div class="section-heading" style="margin-bottom:12px;">Add Subject</div>
-          <form method="post" action="{{ url_for('admin.admin_subject_add') }}" class="auth-form" style="max-width:720px;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>
-              Name
-              <input name="name" required />
-            </label>
-            <div class="form-group">
-              <label class="form-label">Semester</label>
-              <input name="semester" type="number" min="1" max="6" class="form-select" required />
-            </div>
-            <label>
-              Credits
-              <input name="credits" type="number" step="0.5" required />
-            </label>
-
-            <div class="form-group">
-              <label class="form-label">is_active</label>
-              <input type="checkbox" name="is_active" checked />
-            </div>
-
-
-
-            <button class="btn-primary" type="submit">Add</button>
-          </form>
-        {% endif %}
-
-        <!-- Subject edit -->
-        {% if section == 'subject_edit' %}
-          <div class="section-heading" style="margin-bottom:12px;">Edit Subject</div>
-          <form method="post" action="{{ url_for('admin.admin_subject_edit', subject_id=subject.subject_id) }}" class="auth-form" style="max-width:720px;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>
-              Name
-              <input name="name" value="{{ subject.subject_name }}" required />
-            </label>
-            <label>
-              Semester
-              <input name="semester" type="number" min="1" max="6" value="{{ subject.semester }}" required />
-            </label>
-            <label>
-              Credits
-              <input name="credits" type="number" step="0.5" value="{{ subject.credit }}" required />
-            </label>
-
-            <div class="form-group">
-              <label class="form-label">is_active</label>
-              <input type="checkbox" name="is_active" {% if subject.is_active %}checked{% endif %} />
-            </div>
-
-
-
-            <button class="btn-primary" type="submit">Save</button>
-          </form>
-        {% endif %}
-
-        <!-- Announcements -->
-        {% if section == 'announcements' %}
-          <div class="section-heading" style="margin-bottom:12px;">Announcements</div>
-
-          <form method="post" action="{{ url_for('admin.admin_announcement_add') }}" class="auth-form" style="max-width:720px;margin-bottom:22px;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>
-              Title
-              <input name="title" required />
-            </label>
-            <label>
-              Body
-              <textarea name="body" rows="4" required style="width:100%;padding:10px var(--spacing-sm);border:1.5px solid var(--border-color);border-radius:14px;background:#fff;font-family:inherit;"></textarea>
-            </label>
-            <button class="btn-primary" type="submit">Add Announcement</button>
-          </form>
-
+        {% for sem, subs in subjects_grouped.items() %}
+        <div style="margin-bottom:18px;">
+          <div
+            style="font-size:13px;font-weight:900;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px;margin:8px 0;">
+            Semester {{ sem }}</div>
           <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">All Announcements</div>
-            <div style="padding:10px 20px;">
-              {% if announcements|length == 0 %}
-                <div class="empty-state">
-                  <div class="empty-state-title">No announcements</div>
-                  <div class="empty-state-desc">Add the first announcement above.</div>
-                </div>
-              {% else %}
-                <div style="display:flex;flex-direction:column;gap:12px;">
-                  {% for a in announcements %}
-                    <div style="border:1.5px solid var(--border-color);border-radius:16px;padding:14px 14px;background:var(--bg-secondary);">
-                      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-                        <div>
-                          <div style="font-weight:900;">{{ a.title }}</div>
-                          <div style="margin-top:6px;color:var(--text-secondary);white-space:pre-wrap;font-size:13px;">{{ a.body }}</div>
-                          <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">{{ a.created_at }}</div>
-                        </div>
-                        <form method="post" action="{{ url_for('admin.admin_announcement_delete', id=a.id) }}" onsubmit="return confirm('Delete this announcement?');">
-                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                          <button type="submit" class="subject-card-link" style="border-color:var(--accent-red);color:var(--accent-red);">Delete</button>
-                        </form>
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        {% endif %}
-
-        <!-- Rollover -->
-        {% if section == 'rollover' %}
-          <div class="section-heading" style="margin-bottom:12px;">Semester Rollover</div>
-
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Current Semester Breakdown</div>
-            <div style="padding:14px 20px;">
-              <table style="width:100%;border-collapse:collapse;min-width:520px;">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);font-weight:800;">{{ subs|length
+              }} Subjects</div>
+            <div style="padding:10px 18px;overflow:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:740px;">
                 <thead>
                   <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
-                    <th style="padding:10px 6px;">Semester</th>
-                    <th style="padding:10px 6px;">Users</th>
+                    <th style="padding:10px 6px;">Name</th>
+                    <th style="padding:10px 6px;">Credits</th>
+                    <th style="padding:10px 6px;">Active</th>
+                    <th style="padding:10px 6px;">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for sem, cnt in users_per_semester.items()|sort %}
-                    <tr style="border-top:1px solid var(--border-color);">
-                      <td style="padding:10px 6px;font-weight:900;">{{ sem }}</td>
-                      <td style="padding:10px 6px;">{{ cnt }}</td>
-                    </tr>
+                  {% for s in subs %}
+                  <tr style="border-top:1px solid var(--border-color);">
+                    <td style="padding:10px 6px;font-weight:800;">{{ s.subject_name }}</td>
+                    <td style="padding:10px 6px;">{{ s.credit }}</td>
+                    <td style="padding:10px 6px;">
+                      <span class="grade-pill status-green">Active</span>
+                    </td>
+
+                    <td style="padding:10px 6px;white-space:nowrap;">
+                      <a class="subject-card-link"
+                        href="{{ url_for('admin.admin_subject_edit', subject_id=s.subject_id) }}">Edit</a>
+                    </td>
+                  </tr>
                   {% endfor %}
                 </tbody>
               </table>
             </div>
           </div>
+        </div>
+        {% endfor %}
+        {% endif %}
 
-          <div style="margin-top:18px;background:var(--color-red-bg);border:1.5px solid var(--color-red);border-radius:18px;padding:16px 18px;">
-            <div style="font-weight:900;color:var(--color-red);">This will promote all students to next semester. This cannot be undone.</div>
-            <form method="post" action="{{ url_for('admin.admin_rollover_confirm') }}" style="margin-top:14px;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn-primary" style="background:var(--color-red);box-shadow:0 10px 18px rgba(239,68,68,.2);width:auto;padding:0.98rem 1.4rem;">Confirm Rollover</button>
-            </form>
+        <!-- Subject add -->
+        {% if section == 'subject_add' %}
+        <div class="section-heading" style="margin-bottom:12px;">Add Subject</div>
+        <form method="post" action="{{ url_for('admin.admin_subject_add') }}" class="auth-form"
+          style="max-width:720px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>
+            Name
+            <input name="name" required />
+          </label>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <input name="semester" type="number" min="1" max="6" class="form-select" required />
           </div>
+          <label>
+            Credits
+            <input name="credits" type="number" step="0.5" required />
+          </label>
+
+          <div class="form-group">
+            <label class="form-label">is_active</label>
+            <input type="checkbox" name="is_active" checked />
+          </div>
+
+
+
+          <button class="btn-primary" type="submit">Add</button>
+        </form>
+        {% endif %}
+
+        <!-- Subject edit -->
+        {% if section == 'subject_edit' %}
+        <div class="section-heading" style="margin-bottom:12px;">Edit Subject</div>
+        <form method="post" action="{{ url_for('admin.admin_subject_edit', subject_id=subject.subject_id) }}"
+          class="auth-form" style="max-width:720px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>
+            Name
+            <input name="name" value="{{ subject.subject_name }}" required />
+          </label>
+          <label>
+            Semester
+            <input name="semester" type="number" min="1" max="6" value="{{ subject.semester }}" required />
+          </label>
+          <label>
+            Credits
+            <input name="credits" type="number" step="0.5" value="{{ subject.credit }}" required />
+          </label>
+
+          <div class="form-group">
+            <label class="form-label">is_active</label>
+            <input type="checkbox" name="is_active" {% if subject.is_active %}checked{% endif %} />
+          </div>
+
+
+
+          <button class="btn-primary" type="submit">Save</button>
+        </form>
+        {% endif %}
+
+        <!-- Announcements -->
+        {% if section == 'announcements' %}
+        <div class="section-heading" style="margin-bottom:12px;">Announcements</div>
+
+        <form method="post" action="{{ url_for('admin.admin_announcement_add') }}" class="auth-form"
+          style="max-width:720px;margin-bottom:22px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>
+            Title
+            <input name="title" required />
+          </label>
+          <label>
+            Body
+            <textarea name="body" rows="4" required
+              style="width:100%;padding:10px var(--spacing-sm);border:1.5px solid var(--border-color);border-radius:14px;background:#fff;font-family:inherit;"></textarea>
+          </label>
+          <button class="btn-primary" type="submit">Add Announcement</button>
+        </form>
+
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">All Announcements
+          </div>
+          <div style="padding:10px 20px;">
+            {% if announcements|length == 0 %}
+            <div class="empty-state">
+              <div class="empty-state-title">No announcements</div>
+              <div class="empty-state-desc">Add the first announcement above.</div>
+            </div>
+            {% else %}
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              {% for a in announcements %}
+              <div
+                style="border:1.5px solid var(--border-color);border-radius:16px;padding:14px 14px;background:var(--bg-secondary);">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+                  <div>
+                    <div style="font-weight:900;">{{ a.title }}</div>
+                    <div style="margin-top:6px;color:var(--text-secondary);white-space:pre-wrap;font-size:13px;">{{
+                      a.body }}</div>
+                    <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">{{ a.created_at }}</div>
+                  </div>
+                  <form method="post" action="{{ url_for('admin.admin_announcement_delete', id=a.id) }}"
+                    onsubmit="return confirm('Delete this announcement?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="subject-card-link"
+                      style="border-color:var(--accent-red);color:var(--accent-red);">Delete</button>
+                  </form>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Rollover -->
+        {% if section == 'rollover' %}
+        <div class="section-heading" style="margin-bottom:12px;">Semester Rollover</div>
+
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Current Semester
+            Breakdown</div>
+          <div style="padding:14px 20px;">
+            <table style="width:100%;border-collapse:collapse;min-width:520px;">
+              <thead>
+                <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
+                  <th style="padding:10px 6px;">Semester</th>
+                  <th style="padding:10px 6px;">Users</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sem, cnt in users_per_semester.items()|sort %}
+                <tr style="border-top:1px solid var(--border-color);">
+                  <td style="padding:10px 6px;font-weight:900;">{{ sem }}</td>
+                  <td style="padding:10px 6px;">{{ cnt }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div
+          style="margin-top:18px;background:var(--color-red-bg);border:1.5px solid var(--color-red);border-radius:18px;padding:16px 18px;">
+          <div style="font-weight:900;color:var(--color-red);">This will promote all students to next semester. This
+            cannot be undone.</div>
+          <form method="post" action="{{ url_for('admin.admin_rollover_confirm') }}" style="margin-top:14px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-primary"
+              style="background:var(--color-red);box-shadow:0 10px 18px rgba(239,68,68,.2);width:auto;padding:0.98rem 1.4rem;">Confirm
+              Rollover</button>
+          </form>
+        </div>
         {% endif %}
       </section>
     </main>
   </div>
 </body>
-</html>
 
+</html>

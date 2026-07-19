@@ -13,11 +13,12 @@
   if (greetingEl) {
     const meData = await getMe();
     if (meData) {
-        greetingEl.textContent = getGreeting(meData.name);    }
+      greetingEl.innerHTML = getGreeting(meData.name);
+    }
   }
 
   // ── Subjects + stats ─────────────────────────────────────────────────────
-const data = await getSubjects();
+  const data = await getSubjects();
   if (!data) {
     renderError();
     return;
@@ -35,11 +36,11 @@ const data = await getSubjects();
 
 
 function renderStats(stats) {
-  const total    = document.getElementById('stat-total');
-  const entered  = document.getElementById('stat-entered');
-  const onTrack  = document.getElementById('stat-on-track');
+  const total = document.getElementById('stat-total');
+  const entered = document.getElementById('stat-entered');
+  const onTrack = document.getElementById('stat-on-track');
 
-  if (total)   total.textContent   = stats.total_subjects;
+  if (total) total.textContent = stats.total_subjects;
   if (entered) entered.textContent = `${stats.marks_entered} / ${stats.total_subjects}`;
   if (onTrack) onTrack.textContent = stats.on_track_for_aplus;
 }
@@ -61,8 +62,8 @@ function renderSubjectGrid(subjects) {
   }
 
   grid.innerHTML = subjects.map(subject => {
-    const marks   = subject.marks || {};
-    const struct  = subject.structure;
+    const marks = subject.marks || {};
+    const struct = subject.structure;
 
     // Only show badge for electives; omit "Core" label.
     const typeBadge = subject.is_elective
@@ -70,11 +71,11 @@ function renderSubjectGrid(subjects) {
       : '';
     const fields = ['isa', 'cp', 'lb', 'ld', 'sea1'];
     const enteredCount = fields.filter(f => marks[f] != null).length;
-    const progressPct  = Math.round((enteredCount / fields.length) * 100);
+    const progressPct = Math.round((enteredCount / fields.length) * 100);
 
     // Compute secured so far for the card footer.
     const secured = fields.reduce((sum, f) => sum + (marks[f] || 0), 0);
-    const total   = struct.total;
+    const total = struct.total;
 
     return `
       <div class="subject-card" id="subject-card-${subject.subject_id}">
@@ -89,9 +90,9 @@ function renderSubjectGrid(subjects) {
         </div>
         <div class="subject-progress-label">
           ${enteredCount === 0
-            ? 'No marks entered yet'
-            : `${enteredCount} / 5 components entered · ${secured} / ${total} marks`
-          }
+        ? 'No marks entered yet'
+        : `${enteredCount} / 5 components entered · ${secured} / ${total} marks`
+      }
         </div>
         <div class="progress-bar-track" role="progressbar"
              aria-valuenow="${progressPct}" aria-valuemin="0" aria-valuemax="100">

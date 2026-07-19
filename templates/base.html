@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}padikkunnundo.app{% endblock %}</title>
-  <meta name="description" content="{% block description %}Personal academic companion for Marian College Kuttikkanam students.{% endblock %}">
+  <meta name="description"
+    content="{% block description %}Personal academic companion for Marian College Kuttikkanam students.{% endblock %}">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
@@ -39,272 +41,295 @@
 
   {% block head %}{% endblock %}
 </head>
+
 <body>
-<div class="app-layout">
+  <div class="app-layout">
 
-  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-  <nav class="sidebar" aria-label="Main navigation">
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <nav class="sidebar" aria-label="Main navigation">
 
-    <!-- Mobile close button -->
-    <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close menu">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-
-    <!-- Brand -->
-    <div class="sidebar-brand">
-      <div class="sidebar-brand-icon" aria-hidden="true">
-        <img src="{{ url_for('static', filename='img/logo.webp') }}" alt="" style="width:65px;height:65px;object-fit:contain;">
-      </div>
-      <div class="sidebar-brand-text">
-        <div class="sidebar-brand-name">padikkunnundo.app</div>
-        <div class="sidebar-brand-tagline">Academic Companion</div>
-      </div>
-    </div>
-
-    <!-- Navigation -->
-    <div class="sidebar-nav">
-
-      <a href="/dashboard" id="nav-dashboard"
-         class="sidebar-nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      <!-- Mobile close button -->
+      <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
-        Dashboard
-      </a>
+      </button>
 
-      <a href="/marks" id="nav-marks"
-         class="sidebar-nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-        My Marks
-      </a>
-
-      <a href="/calculator" id="nav-calculator"
-         class="sidebar-nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <rect x="4" y="2" width="16" height="20" rx="2"/>
-          <line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/>
-          <line x1="12" y1="10" x2="14" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/>
-          <line x1="8" y1="14" x2="10" y2="14"/><line x1="12" y1="14" x2="14" y2="14"/>
-          <line x1="16" y1="14" x2="16" y2="18"/><line x1="8" y1="18" x2="14" y2="18"/>
-        </svg>
-        A+ Calculator
-      </a>
-      <a href="/about" id="nav-about"
-         class="sidebar-nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="8"/>
-          <line x1="12" y1="12" x2="12" y2="16"/>
-        </svg>
-        About
-      </a>
-
-
-
-      <hr class="sidebar-divider">
-      <div class="sidebar-section-label">Platforms</div>
-
-      <a href="{{ platforms.pyqportal if platforms else 'https://pyqportal.app' }}"
-         target="_blank" rel="noopener" id="nav-pyqportal"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
-        PYQPortal
-      </a>
-
-      <a href="{{ platforms.mcq_quiz if platforms else 'https://quiz.pyqportal.app' }}"
-         target="_blank" rel="noopener" id="nav-mcq"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        MCQ Quiz
-      </a>
-
-      <a href="{{ platforms.placement if platforms else 'https://lab.pyqportal.app' }}"
-         target="_blank" rel="noopener" id="nav-placement"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="m.586 12l4.95-4.95L6.95 8.464L3.414 12l3.536 3.536l-1.414 1.414L.586 12Z"/>
-          <path d="m8.201 20.728l4.486-17.94l1.94.485l-4.485 17.94l-1.94-.485Z"/>
-          <path d="m17.05 8.464l1.415-1.414l4.95 4.95l-4.95 4.95l-1.415-1.414L20.586 12L17.05 8.464Z"/>
-        </svg>
-        Lab Practice
-      </a>
-
-      <a href="{{ platforms.topics if platforms else 'https://topic.pyqportal.app' }}"
-         target="_blank" rel="noopener" id="nav-topics"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </svg>
-        Important Topics
-      </a>
-
-      <a href="{{ platforms.mark_analyser if platforms else 'https://mark.pyqportal.app' }}"
-         target="_blank" rel="noopener" id="nav-mark-analyser"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-        Mark Analyser
-      </a>
-
-      <a href="{{ url_for('pages.go_to_doubtundo') }}"
-         target="_blank" rel="noopener"
-         id="nav-doubtundo"
-         class="sidebar-nav-item external">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Doubtundo
-      </a>
-
-    </div><!-- /sidebar-nav -->
-
-    <!-- User info -->
-    {% if user %}
-    <div class="sidebar-user">
-      <div class="sidebar-user-avatar" aria-hidden="true">
-        {{ user.name[0] if user.name else '?' }}
-      </div>
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
-        <div class="sidebar-user-sem">
-          {% if user.semester %}Semester {{ user.semester }}{% else %}Not set{% endif %}
+      <!-- Brand -->
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon" aria-hidden="true">
+          <img src="{{ url_for('static', filename='img/logo.webp') }}" alt=""
+            style="width:65px;height:65px;object-fit:contain;">
+        </div>
+        <div class="sidebar-brand-text">
+          <div class="sidebar-brand-name">padikkunnundo.app</div>
+          <div class="sidebar-brand-tagline">Academic Companion</div>
         </div>
       </div>
-      <a href="/auth/logout" class="sidebar-logout" title="Sign out" aria-label="Sign out" data-turbo="false" onclick="sessionStorage.clear()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </a>
-    </div>
-    {% endif %}
 
-  </nav><!-- /sidebar -->
+      <!-- Navigation -->
+      <div class="sidebar-nav">
 
-  <!-- ── Main content ─────────────────────────────────────────────────────── -->
-  <div class="main-content">
-
-    <!-- Topbar with search + user chip -->
-    <header class="topbar">
-      <!-- Left side: hamburger + user info -->
-      <div class="topbar-left">
-        <!-- Mobile hamburger menu button -->
-        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        <a href="/dashboard" id="nav-dashboard" class="sidebar-nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
           </svg>
-        </button>
+          Dashboard
+        </a>
 
-        <!-- User info (avatar + name) -->
-        {% if user %}
-        <div class="topbar-mobile-user">
-          <div class="topbar-mobile-user-avatar" aria-hidden="true">
-            {{ user.name[0] if user.name else '?' }}
-          </div>
-          <div class="topbar-mobile-user-text">
-            <div class="topbar-mobile-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
-            <div class="topbar-mobile-user-sub">
-              {% if user.semester %}{{ user.course.split()[0] if user.course else 'BCA' }} · Sem {{ user.semester }}{% endif %}
-            </div>
+        <a href="/marks" id="nav-marks" class="sidebar-nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          My Marks
+        </a>
+
+        <a href="/calculator" id="nav-calculator" class="sidebar-nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <line x1="8" y1="6" x2="16" y2="6" />
+            <line x1="8" y1="10" x2="10" y2="10" />
+            <line x1="12" y1="10" x2="14" y2="10" />
+            <line x1="16" y1="10" x2="16" y2="10" />
+            <line x1="8" y1="14" x2="10" y2="14" />
+            <line x1="12" y1="14" x2="14" y2="14" />
+            <line x1="16" y1="14" x2="16" y2="18" />
+            <line x1="8" y1="18" x2="14" y2="18" />
+          </svg>
+          A+ Calculator
+        </a>
+        <a href="/about" id="nav-about" class="sidebar-nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="8" />
+            <line x1="12" y1="12" x2="12" y2="16" />
+          </svg>
+          About
+        </a>
+
+
+
+        <hr class="sidebar-divider">
+        <div class="sidebar-section-label">Platforms</div>
+
+        <a href="{{ platforms.pyqportal if platforms else 'https://pyqportal.app' }}" target="_blank" rel="noopener"
+          id="nav-pyqportal" class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          PYQPortal
+        </a>
+
+        <a href="{{ platforms.mcq_quiz if platforms else 'https://quiz.pyqportal.app' }}" target="_blank" rel="noopener"
+          id="nav-mcq" class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          MCQ Quiz
+        </a>
+
+        <a href="{{ platforms.placement if platforms else 'https://lab.pyqportal.app' }}" target="_blank" rel="noopener"
+          id="nav-placement" class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="m.586 12l4.95-4.95L6.95 8.464L3.414 12l3.536 3.536l-1.414 1.414L.586 12Z" />
+            <path d="m8.201 20.728l4.486-17.94l1.94.485l-4.485 17.94l-1.94-.485Z" />
+            <path d="m17.05 8.464l1.415-1.414l4.95 4.95l-4.95 4.95l-1.415-1.414L20.586 12L17.05 8.464Z" />
+          </svg>
+          Lab Practice
+        </a>
+
+        <a href="{{ platforms.topics if platforms else 'https://topic.pyqportal.app' }}" target="_blank" rel="noopener"
+          id="nav-topics" class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          Important Topics
+        </a>
+
+        <a href="{{ platforms.mark_analyser if platforms else 'https://mark.pyqportal.app' }}" target="_blank"
+          rel="noopener" id="nav-mark-analyser" class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Mark Analyser
+        </a>
+
+        <a href="{{ url_for('pages.go_to_doubtundo') }}" target="_blank" rel="noopener" id="nav-doubtundo"
+          class="sidebar-nav-item external">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          Doubtundo
+        </a>
+
+      </div><!-- /sidebar-nav -->
+
+      <!-- User info -->
+      {% if user %}
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" aria-hidden="true">
+          {{ user.name[0] if user.name else '?' }}
+        </div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
+          <div class="sidebar-user-sem">
+            {% if user.semester %}Semester {{ user.semester }}{% else %}Not set{% endif %}
           </div>
         </div>
-        {% endif %}
-      </div>
-
-      <!-- Right side: bell + logout (mobile) -->
-      <div class="topbar-right">
-        {% block topbar_actions %}
-        <button class="bell-btn" id="open-notice-panel" aria-label="Open notifications" aria-expanded="false">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span class="bell-badge" id="bell-badge" style="display:none;" aria-hidden="true"></span>
-        </button>
-        {% endblock %}
-        <!-- Mobile logout button -->
-        {% if user %}
-        <a href="/auth/logout" class="mobile-logout-btn" title="Sign out" aria-label="Sign out" data-turbo="false" onclick="sessionStorage.clear()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        <a href="/auth/logout" class="sidebar-logout" title="Sign out" aria-label="Sign out" data-turbo="false"
+          onclick="sessionStorage.clear()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
         </a>
-        {% endif %}
       </div>
+      {% endif %}
 
-      <!-- Desktop user info (hidden on mobile) -->
-      {% if user %}
-      <div class="topbar-desktop-user">
-        <div class="topbar-user" role="img" aria-label="{{ user.name }}">
-          <div class="topbar-user-avatar" aria-hidden="true">
-            {{ user.name[0] if user.name else '?' }}
+    </nav><!-- /sidebar -->
+
+    <!-- ── Main content ─────────────────────────────────────────────────────── -->
+    <div class="main-content">
+
+      <!-- Topbar with search + user chip -->
+      <header class="topbar">
+        <!-- Left side: hamburger + user info -->
+        <div class="topbar-left">
+          <!-- Mobile hamburger menu button -->
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
+          <!-- User info (avatar + name) -->
+          {% if user %}
+          <div class="topbar-mobile-user">
+            <div class="topbar-mobile-user-avatar" aria-hidden="true">
+              {{ user.name[0] if user.name else '?' }}
+            </div>
+            <div class="topbar-mobile-user-text">
+              <div class="topbar-mobile-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
+              <div class="topbar-mobile-user-sub">
+                {% if user.semester %}{{ user.course.split()[0] if user.course else 'BCA' }} · Sem {{ user.semester }}{%
+                endif %}
+              </div>
+            </div>
           </div>
-          <div class="topbar-user-text">
-            <div class="topbar-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
-            <div class="topbar-user-sub">
-              {% if user.semester %}{{ user.course.split()[0] if user.course else 'BCA' }} · Sem {{ user.semester }}{% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Right side: bell + logout (mobile) -->
+        <div class="topbar-right">
+          {% block topbar_actions %}
+          <button class="bell-btn" id="open-notice-panel" aria-label="Open notifications" aria-expanded="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="bell-badge" id="bell-badge" style="display:none;" aria-hidden="true"></span>
+          </button>
+          {% endblock %}
+          <!-- Mobile logout button -->
+          {% if user %}
+          <a href="/auth/logout" class="mobile-logout-btn" title="Sign out" aria-label="Sign out" data-turbo="false"
+            onclick="sessionStorage.clear()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- Desktop user info (hidden on mobile) -->
+        {% if user %}
+        <div class="topbar-desktop-user">
+          <div class="topbar-user" role="img" aria-label="{{ user.name }}">
+            <div class="topbar-user-avatar" aria-hidden="true">
+              {{ user.name[0] if user.name else '?' }}
+            </div>
+            <div class="topbar-user-text">
+              <div class="topbar-user-name">{{ user.name.split()[0] if user.name else 'Student' }}</div>
+              <div class="topbar-user-sub">
+                {% if user.semester %}{{ user.course.split()[0] if user.course else 'BCA' }} · Sem {{ user.semester }}{%
+                endif %}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {% endif %}
-    </header>
+        {% endif %}
+      </header>
 
-    <!-- Page content -->
-    <main class="page-content" id="main-content">
-      {% block content %}{% endblock %}
-      
-    </main>
+      <!-- Page content -->
+      <main class="page-content" id="main-content">
+        {% block content %}{% endblock %}
 
-  </div><!-- /main-content -->
-</div><!-- /app-layout -->
+      </main>
 
-<!-- ── Notification panel ────────────────────────────────────────────────── -->
-<div class="notice-overlay" id="notice-overlay" aria-hidden="true"></div>
-<div class="notice-panel" id="notice-panel" role="dialog" aria-modal="true" aria-label="Notifications">
-  <div class="notice-panel-header">
-    <span class="notice-panel-title">Notifications</span>
-    <button class="close-btn" id="close-notice-panel" aria-label="Close">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
+    </div><!-- /main-content -->
+  </div><!-- /app-layout -->
 
-  <div class="panel-content">
-    <div class="panel-pane active" id="pane-notices" role="tabpanel" aria-labelledby="tab-notices">
-      <div class="empty-state">
-        <div class="empty-state-icon">📢</div>
-        <div class="empty-state-title">No notices yet</div>
-        <div class="empty-state-desc">Admin notices will appear here.</div>
+  <!-- ── Notification panel ────────────────────────────────────────────────── -->
+  <div class="notice-overlay" id="notice-overlay" aria-hidden="true"></div>
+  <div class="notice-panel" id="notice-panel" role="dialog" aria-modal="true" aria-label="Notifications">
+    <div class="notice-panel-header">
+      <span class="notice-panel-title">Notifications</span>
+      <button class="close-btn" id="close-notice-panel" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="panel-content">
+      <div class="panel-pane active" id="pane-notices" role="tabpanel" aria-labelledby="tab-notices">
+        <div class="empty-state">
+          <div class="empty-state-icon">📢</div>
+          <div class="empty-state-title">No notices yet</div>
+          <div class="empty-state-desc">Admin notices will appear here.</div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Sidebar overlay for mobile -->
-<div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
-<script src="{{ url_for('static', filename='js/nav.js') }}"></script>
-{% block scripts %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+  {% block scripts %}{% endblock %}
 
 </body>
+
 </html>
