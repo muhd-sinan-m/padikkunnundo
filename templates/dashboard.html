@@ -99,9 +99,11 @@ endblock %}
     </div>
   </a>
   <a href="{{ platforms.topics }}" target="_blank" rel="noopener" class="platform-card" id="card-topics">
-    <div class="platform-card-icon topics" aria-hidden="true">📚</div>
+    <div class="platform-card-icon topics" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/passavam_logo.webp') }}" alt="" class="platform-card-img">
+    </div>
     <div class="platform-card-text">
-      <div class="platform-card-name">Important Topics</div>
+      <div class="platform-card-name">PassAvam</div>
       <div class="platform-card-desc">Curated topic lists for revision</div>
     </div>
   </a>
