@@ -80,6 +80,6 @@ class Config:
     PYQPORTAL_URL: str = "https://pyqportal.app"
     MCQ_QUIZ_URL: str = "https://mcq-portal-ldf6.onrender.com/"
     PLACEMENT_URL: str = "https://lab.pyqportal.app"
-    TOPIC_URL: str = "https://topic.pyqportal.app"
+    TOPIC_URL: str = "https://passavam.onrender.com"
     MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
     DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
