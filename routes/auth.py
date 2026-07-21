@@ -163,6 +163,65 @@ def _set_session_cookie(response, user: User):
     return response
 
 
+# ── SSO JWT helpers (cross-platform, signed with JWT_SECRET) ──────────────
+
+def _create_sso_jwt(user: User) -> str:
+    """
+    Mint a short-lived SSO handoff token for cross-platform authentication.
+
+    This token is signed with JWT_SECRET (NOT SECRET_KEY) so it can be
+    verified by sister platforms that share only JWT_SECRET.
+
+    Claims:
+      sub   — padikkunnundo user.id (string)
+      name  — display name
+      email — college email address
+      college — college name string
+      iss   — "padikkunnundo"  (issuer)
+      aud   — "mcq-quiz"       (intended audience)
+      iat   — issued-at (UTC)
+      exp   — expires in SSO_TOKEN_EXPIRY_SECONDS (default 5 min)
+
+    The short expiry is intentional: the token travels as a URL query
+    parameter and may appear in server / proxy access logs.
+    """
+    expiry_seconds = current_app.config.get("SSO_TOKEN_EXPIRY_SECONDS", 300)
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user.id),
+        "name": user.name or "",
+        "email": user.email or "",
+        "college": user.college or "",
+        "iss": "padikkunnundo",
+        "aud": "mcq-quiz",
+        "iat": now,
+        "exp": now + timedelta(seconds=expiry_seconds),
+    }
+    return jwt.encode(
+        payload,
+        current_app.config["JWT_SECRET"],
+        algorithm=current_app.config["JWT_ALGORITHM"],
+    )
+
+
+def _decode_sso_jwt(token: str) -> dict | None:
+    """
+    Decode and validate an SSO token issued by padikkunnundo.
+    Validates issuer and audience in addition to signature and expiry.
+    Returns None on any failure.
+    """
+    try:
+        return jwt.decode(
+            token,
+            current_app.config["JWT_SECRET"],
+            algorithms=[current_app.config["JWT_ALGORITHM"]],
+            audience="mcq-quiz",
+            issuer="padikkunnundo",
+        )
+    except jwt.PyJWTError:
+        return None
+
+
 # ── Dev bypass helper ─────────────────────────────────────────────────────────
 
 def _get_or_create_dev_user() -> User:
@@ -590,3 +649,84 @@ def logout():
     response = redirect(url_for("pages.login"))
     response.delete_cookie("session_token")
     return response
+
+
+# ── SSO Routes ────────────────────────────────────────────────────────────────
+
+@auth_bp.route("/sso/token")
+@login_required
+def sso_token():
+    """
+    SSO handoff endpoint — redirects an authenticated padikkunnundo user to
+    the MCQ quiz site with a short-lived signed JWT.
+
+    Flow:
+      1. User is already logged in to padikkunnundo.app (session cookie valid).
+      2. User clicks a link or is redirected here.
+      3. We mint a 5-minute SSO JWT (signed with JWT_SECRET) and
+         redirect the browser to {MCQ_QUIZ_URL}/sso/login?token=<jwt>.
+      4. The MCQ site validates the token, finds/creates the user, and
+         sets its own session cookie.
+
+    Optional query param:
+      ?next=<path>  — forwarded to the MCQ site so it can redirect the user
+                       to a specific page after login (e.g. a quiz URL).
+    """
+    user = get_current_user()
+
+    # Build the SSO token
+    sso_jwt = _create_sso_jwt(user)
+
+    # Forward an optional deep-link path to the MCQ site
+    next_path = request.args.get("next", "")
+
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://quiz.pyqportal.app")
+    target = f"{quiz_url}/sso/login?token={sso_jwt}"
+    if next_path:
+        from urllib.parse import quote
+        target += f"&next={quote(next_path, safe='')}"
+
+    return redirect(target)
+
+
+@auth_bp.route("/sso/verify", methods=["POST"])
+def sso_verify():
+    """
+    Server-to-server SSO token verification endpoint (JSON).
+
+    The MCQ site's backend can POST a token here to validate it without
+    having to implement the full JWT verification itself (though sharing
+    JWT_SECRET and verifying locally is the preferred, lower-latency approach).
+
+    Request body (JSON):
+      { "token": "<sso_jwt>" }
+
+    Response (200 on success):
+      {
+        "valid": true,
+        "sub": "42",
+        "name": "MUHAMMED SINAN. M",
+        "email": "sinan@mariancollege.org",
+        "college": "Marian College Kuttikkanam"
+      }
+
+    Response (401 on failure):
+      { "valid": false, "error": "Token expired / invalid / missing" }
+    """
+    data = request.get_json(silent=True) or {}
+    token = data.get("token", "").strip()
+
+    if not token:
+        return jsonify({"valid": False, "error": "Token missing."}), 400
+
+    payload = _decode_sso_jwt(token)
+    if payload is None:
+        return jsonify({"valid": False, "error": "Token invalid or expired."}), 401
+
+    return jsonify({
+        "valid": True,
+        "sub": payload.get("sub"),
+        "name": payload.get("name"),
+        "email": payload.get("email"),
+        "college": payload.get("college"),
+    }), 200

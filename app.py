@@ -60,6 +60,9 @@ def create_app(config_class=Config) -> Flask:
     # bcrypt — CSRF here would break direct POSTs from non-browser clients.
     csrf.exempt("auth.login")
     csrf.exempt("auth.register")
+    # SSO verify is a server-to-server JSON POST from the MCQ backend.
+    # It carries no session cookie and is authenticated via the shared JWT_SECRET.
+    csrf.exempt("auth.sso_verify")
 
     # ── Error handlers ────────────────────────────────────────────────────────
     @app.errorhandler(CSRFError)

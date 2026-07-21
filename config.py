@@ -49,9 +49,12 @@ class Config:
     # ── Session / JWT ─────────────────────────────────────────────────────────
     SESSION_TOKEN_EXPIRY_DAYS: int = 30
     JWT_ALGORITHM: str = "HS256"
-    # Secret used to sign cross-platform SSO tokens (e.g. for Doubtundo).
-    # Override via JWT_SECRET env var in production.
+    # Secret used to sign cross-platform SSO tokens (e.g. for MCQ quiz site).
+    # MUST match JWT_SECRET on every sister platform. Override via env var.
     JWT_SECRET: str = os.environ.get("JWT_SECRET", "dev-only-jwt-secret")
+    # Short-lived SSO handoff tokens — 5 minutes is intentionally tight because
+    # the token travels in a URL query parameter and could appear in server logs.
+    SSO_TOKEN_EXPIRY_SECONDS: int = int(os.environ.get("SSO_TOKEN_EXPIRY_SECONDS", "300"))
 
     # ── Rate Limiting ─────────────────────────────────────────────────────────
     # Rate limit for login attempts: 5 failed attempts per 15 minutes
@@ -75,7 +78,7 @@ class Config:
 
     # ── Sister Platform URLs ──────────────────────────────────────────────────
     PYQPORTAL_URL: str = "https://pyqportal.app"
-    MCQ_QUIZ_URL: str = "https://quiz.pyqportal.app"
+    MCQ_QUIZ_URL: str = "https://mcq-portal-ldf6.onrender.com/"
     PLACEMENT_URL: str = "https://lab.pyqportal.app"
     TOPIC_URL: str = "https://topic.pyqportal.app"
     MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
