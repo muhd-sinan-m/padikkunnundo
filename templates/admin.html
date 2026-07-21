@@ -590,11 +590,24 @@
           </label>
 
           <div class="form-group">
-            <label class="form-label">is_active</label>
+            <label class="form-label">Is Active</label>
             <input type="checkbox" name="is_active" checked />
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Is Elective</label>
+            <input type="checkbox" name="is_elective" id="add_is_elective"
+              onchange="document.getElementById('add_elective_group_row').style.display=this.checked?'block':'none'" />
+          </div>
 
+          <div class="form-group" id="add_elective_group_row" style="display:none;">
+            <label class="form-label">Elective Group</label>
+            <select name="elective_group" class="form-select">
+              <option value="lang_1_2">lang_1_2 — Language Elective (Sem 1–2)</option>
+              <option value="spec_3_4">spec_3_4 — Specialisation Elective (Sem 3–4)</option>
+              <option value="pe_5">pe_5 — Professional Elective (Sem 5–6)</option>
+            </select>
+          </div>
 
           <button class="btn-primary" type="submit">Add</button>
         </form>
@@ -620,11 +633,29 @@
           </label>
 
           <div class="form-group">
-            <label class="form-label">is_active</label>
+            <label class="form-label">Is Active</label>
             <input type="checkbox" name="is_active" {% if subject.is_active %}checked{% endif %} />
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Is Elective</label>
+            <input type="checkbox" name="is_elective" id="edit_is_elective"
+              {% if subject.is_elective %}checked{% endif %}
+              onchange="document.getElementById('edit_elective_group_row').style.display=this.checked?'block':'none'" />
+          </div>
 
+          <div class="form-group" id="edit_elective_group_row"
+            style="display:{% if subject.is_elective %}block{% else %}none{% endif %};">
+            <label class="form-label">Elective Group</label>
+            <select name="elective_group" class="form-select">
+              <option value="lang_1_2" {% if subject.elective_group == 'lang_1_2' %}selected{% endif %}>
+                lang_1_2 — Language Elective (Sem 1–2)</option>
+              <option value="spec_3_4" {% if subject.elective_group == 'spec_3_4' %}selected{% endif %}>
+                spec_3_4 — Specialisation Elective (Sem 3–4)</option>
+              <option value="pe_5" {% if subject.elective_group == 'pe_5' %}selected{% endif %}>
+                pe_5 — Professional Elective (Sem 5–6)</option>
+            </select>
+          </div>
 
           <button class="btn-primary" type="submit">Save</button>
         </form>

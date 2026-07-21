@@ -313,17 +313,19 @@ def admin_subject_add():
         semester = int(data.get("semester"))
         credits = float(data.get("credits"))
 
+        is_elective = data.get("is_elective") == "on"
+        elective_group = (data.get("elective_group") or "").strip() or None
+        if not is_elective:
+            elective_group = None
+
         subject = Subject(
             subject_name=subject_name,
             semester=semester,
             credit=credits,
-            is_elective=False,
+            is_elective=is_elective,
             is_active=True,
-            elective_group=None,
+            elective_group=elective_group,
         )
-
-        # Admin UI in this deployment only manages: name, semester, credits, is_active, is_elective/elective_group.
-
 
         db.session.add(subject)
         db.session.commit()
@@ -350,6 +352,9 @@ def admin_subject_edit(subject_id: int):
         subject.semester = int(data.get("semester"))
         subject.credit = float(data.get("credits"))
         subject.is_active = data.get("is_active") == "on"
+        subject.is_elective = data.get("is_elective") == "on"
+        elective_group = (data.get("elective_group") or "").strip() or None
+        subject.elective_group = elective_group if subject.is_elective else None
 
         db.session.commit()
 
