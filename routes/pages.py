@@ -12,7 +12,7 @@ import time
 from flask import Blueprint, current_app, redirect, render_template, url_for
 import jwt
 
-from routes.auth import get_current_user, login_required
+from routes.auth import get_current_user, login_required, _create_sso_jwt
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -117,3 +117,34 @@ def go_to_doubtundo():
     )
     dest = current_app.config["DOUBTUNDO_URL"]
     return redirect(f"{dest}/auth?token={token}")
+
+
+@pages_bp.route("/go-to-mcq")
+@login_required
+def go_to_mcq():
+    """
+    SSO bridge to the MCQ Quiz portal.
+
+    Mints a 5-minute JWT (signed with JWT_SECRET, iss="padikkunnundo",
+    aud="mcq-quiz") and redirects to {MCQ_QUIZ_URL}/sso/login?token=<jwt>.
+    The MCQ portal validates the token with the shared JWT_SECRET and
+    signs the user in without requiring a separate login.
+
+    Optional query param:
+      ?next=<path>  — forwarded to the MCQ portal so it can redirect the
+                       user to a specific page after login.
+    """
+    from flask import request as flask_request
+    from urllib.parse import quote
+
+    user = get_current_user()
+    token = _create_sso_jwt(user)
+
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://quiz.pyqportal.app").rstrip("/")
+    target = f"{quiz_url}/sso/login?token={token}"
+
+    next_path = flask_request.args.get("next", "")
+    if next_path:
+        target += f"&next={quote(next_path, safe='')}"
+
+    return redirect(target)
