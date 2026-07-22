@@ -4003,3 +4003,59 @@ textarea {
     display: none;
   }
 }
+
+/* ── markkundo SSO integration ─────────────────────────────────────────────── */
+
+/* Icon-only link button in the card header */
+.markkundo-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full, 999px);
+  border: 1.5px solid var(--border-color);
+  color: var(--gray-500);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.markkundo-icon-btn:hover {
+  color: #7c3aed;
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.07);
+}
+
+/* Footer links row — PYQPortal + markkundo side by side */
+.card-footer-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 8px);
+  margin-top: var(--space-5, 12px);
+}
+
+/* Shared base link style (pyq-link already used by PYQPortal) */
+.pyq-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-500);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.pyq-link:hover {
+  color: var(--primary-blue, #2563eb);
+  text-decoration: underline;
+}
+
+/* Override for markkundo link — purple accent */
+.markkundo-link:hover {
+  color: #7c3aed;
+}

@@ -139,6 +139,12 @@
       + '<div class="marks-card-title">' + escHtml(subject.subject_name) + '</div>'
       + '<div class="marks-card-header-right">'
       + '<span class="credit-badge">' + subject.credit + ' credits · Total ' + struct.total + '</span>'
+
+      // markkundo icon button in header
+      + '<a href="/auth/markkundo-sso" target="_blank" rel="noopener" class="markkundo-icon-btn" id="markkundo-hdr-' + id + '" title="Analyse in markkundo" aria-label="Analyse in markkundo">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+      + '</a>'
+
       + '<button class="clear-marks-btn" id="clear-btn-' + id + '" data-subject="' + id + '" aria-label="Clear all marks for ' + escHtml(subject.subject_name) + '" title="Clear all marks">'
       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
       + ' Clear'
@@ -171,7 +177,9 @@
       // Secondary grade pills: A, B+ (no Pass)
       + '<div class="grade-pills" id="pills-' + id + '" style="margin-top:var(--space-3);"></div>'
 
-      // PYQPortal link
+      // Bottom links row — PYQPortal + markkundo
+      + '<div class="card-footer-links">'
+
       + '<a href="' + PYQPORTAL_BASE + '" target="_blank" rel="noopener" class="pyq-link" id="pyq-link-' + id + '">'
       + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
       + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
@@ -179,6 +187,15 @@
       + '</svg>'
       + ' Find past papers on PYQPortal ↗'
       + '</a>'
+
+      + '<a href="/auth/markkundo-sso" target="_blank" rel="noopener" class="pyq-link markkundo-link" id="markkundo-link-' + id + '">'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
+      + '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
+      + '</svg>'
+      + ' Analyse in markkundo ↗'
+      + '</a>'
+
+      + '</div>'
 
       + '</div>'
       + '</div>';

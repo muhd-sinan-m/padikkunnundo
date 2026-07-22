@@ -81,5 +81,13 @@ class Config:
     MCQ_QUIZ_URL: str = "https://mcq-portal-ldf6.onrender.com/"
     PLACEMENT_URL: str = "https://lab.pyqportal.app"
     TOPIC_URL: str = "https://passavam.onrender.com"
-    MARK_ANALYSER_URL: str = "https://mark.pyqportal.app"
+    MARK_ANALYSER_URL: str = os.environ.get("MARKKUNDO_URL", "https://markkundo.app")
     DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
+
+    # ── Cross-App SSO (markkundo) ───────────────────────────────────────────────
+    # Shared secret used to sign JWT tokens for markkundo SSO.
+    # MUST match the SSO_SECRET in markkundo's .env.
+    SSO_SECRET: str = os.environ.get("SSO_SECRET", "dev-only-sso-secret")
+    # Short-lived SSO token expiry (seconds) — 5 min intentionally tight
+    MARKKUNDO_SSO_EXPIRY_SECONDS: int = 300
+

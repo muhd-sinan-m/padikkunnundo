@@ -730,3 +730,57 @@ def sso_verify():
         "email": payload.get("email"),
         "college": payload.get("college"),
     }), 200
+
+
+# ── markkundo SSO redirect ─────────────────────────────────────────────────────
+
+@auth_bp.route("/markkundo-sso")
+@login_required
+def markkundo_sso():
+    """
+    Redirect the currently-logged-in padikkunundo student to markkundo
+    with a short-lived JWT so they are auto-logged in there.
+
+    Flow:
+      1. Student is authenticated in padikkunundo (session cookie present).
+      2. GET /auth/markkundo-sso  ← triggered by "Analyse in markkundo" button.
+      3. We mint a 5-minute JWT signed with SSO_SECRET (shared with markkundo).
+      4. Redirect to: <MARKKUNDO_URL>/auth/sso?token=<JWT>
+      5. markkundo validates the token → logs the student in → shows dashboard.
+
+    Security notes:
+      • Token travels only in a URL query parameter (HTTPS in production).
+      • 5-minute expiry limits the window for replay attacks.
+      • Signed with SSO_SECRET (NOT the session SECRET_KEY) so markkundo
+        can verify it without knowing padikkunundo's session secret.
+    """
+    user: User = get_current_user()
+    if user is None:
+        return redirect(url_for("pages.login"))
+
+    sso_secret = current_app.config.get("SSO_SECRET", "")
+    markkundo_url = current_app.config.get("MARK_ANALYSER_URL", "").rstrip("/")
+    expiry_seconds = current_app.config.get("MARKKUNDO_SSO_EXPIRY_SECONDS", 300)
+
+    if not sso_secret:
+        current_app.logger.error("SSO_SECRET not configured — cannot issue markkundo SSO token")
+        return "SSO is not configured on this server.", 503
+
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": user.email,         # markkundo looks up student by email
+        "iss": "padikkunundo",
+        "aud": "markkundo",
+        "name": user.name or "",
+        "iat": now,
+        "exp": now + timedelta(seconds=expiry_seconds),
+    }
+    token = jwt.encode(
+        payload,
+        sso_secret,
+        algorithm=current_app.config.get("JWT_ALGORITHM", "HS256"),
+    )
+
+    sso_url = f"{markkundo_url}/auth/sso?token={token}"
+    current_app.logger.info(f"markkundo SSO redirect for {user.email}")
+    return redirect(sso_url)
