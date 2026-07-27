@@ -185,17 +185,19 @@ def _create_sso_jwt(user: User) -> str:
     The short expiry is intentional: the token travels as a URL query
     parameter and may appear in server / proxy access logs.
     """
+    import time
     expiry_seconds = current_app.config.get("SSO_TOKEN_EXPIRY_SECONDS", 300)
-    now = datetime.now(timezone.utc)
+    now_ts = int(time.time())
     payload = {
+        "user_id": str(user.id),
         "sub": str(user.id),
         "name": user.name or "",
         "email": user.email or "",
         "college": user.college or "",
         "iss": "padikkunnundo",
         "aud": "mcq-quiz",
-        "iat": now,
-        "exp": now + timedelta(seconds=expiry_seconds),
+        "iat": now_ts,
+        "exp": now_ts + expiry_seconds,
     }
     return jwt.encode(
         payload,
@@ -680,7 +682,7 @@ def sso_token():
     # Forward an optional deep-link path to the MCQ site
     next_path = request.args.get("next", "")
 
-    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://quiz.pyqportal.app")
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/").rstrip("/")
     target = f"{quiz_url}/sso/login?token={sso_jwt}"
     if next_path:
         from urllib.parse import quote

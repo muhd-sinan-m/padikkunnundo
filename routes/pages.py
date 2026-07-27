@@ -140,7 +140,7 @@ def go_to_mcq():
     user = get_current_user()
     token = _create_sso_jwt(user)
 
-    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://quiz.pyqportal.app").rstrip("/")
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/").rstrip("/")
     target = f"{quiz_url}/sso/login?token={token}"
 
     next_path = flask_request.args.get("next", "")
