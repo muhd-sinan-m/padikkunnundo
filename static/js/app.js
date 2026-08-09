@@ -46,42 +46,32 @@ function invalidateSubjectsCache() {
 }
 
 async function getMe() {
-  const data = await api('/api/me');
-  if (data) {
-    const cached = sessionStorage.getItem(ME_CACHE_KEY);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (parsed.semester !== data.semester || parsed.is_onboarded !== data.is_onboarded) {
-          sessionStorage.removeItem(SUBJECTS_CACHE_KEY);
-        }
-      } catch (e) {}
-    }
-    sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(data));
+  const cached = sessionStorage.getItem(ME_CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {}
   }
+  const data = await api('/api/me');
+  if (data) sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(data));
   return data;
 }
 
 async function getSubjects() {
-  const me = await getMe();
   const cached = sessionStorage.getItem(SUBJECTS_CACHE_KEY);
   if (cached) {
     try {
-      const parsed = JSON.parse(cached);
-      if (me && parsed && (parsed.semester === me.semester || parsed.semester === undefined)) {
-        return parsed;
-      }
+      return JSON.parse(cached);
     } catch (e) {}
-    sessionStorage.removeItem(SUBJECTS_CACHE_KEY);
   }
 
   const data = await api('/api/subjects');
   if (data) {
-    data.semester = me ? me.semester : data.semester;
     sessionStorage.setItem(SUBJECTS_CACHE_KEY, JSON.stringify(data));
   }
   return data;
 }
+
 
 /* ── HTML escaping ───────────────────────────────────────────────────────── */
 
