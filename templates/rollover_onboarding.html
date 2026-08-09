@@ -195,6 +195,7 @@ form.addEventListener('submit', async (e) => {
   });
 
   if (result && result.ok) {
+    invalidateSubjectsCache();
     window.location.href = '/dashboard';
   } else {
     showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');
@@ -303,6 +304,7 @@ form.addEventListener('submit', async (e) => {
   });
 
   if (result && result.ok) {
+    invalidateSubjectsCache();
     window.location.href = '/dashboard';
   } else {
     showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');

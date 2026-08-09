@@ -36,31 +36,53 @@ async function api(path, options = {}) {
   }
 }
 
-// ── Subjects cache ────────────────────────────────────────────────────────
+// ── Subjects & Me cache ──────────────────────────────────────────────────
 const SUBJECTS_CACHE_KEY = 'subjects_cache';
-
-async function getSubjects() {
-  const cached = sessionStorage.getItem(SUBJECTS_CACHE_KEY);
-  if (cached) return JSON.parse(cached);
-
-  const data = await api('/api/subjects');
-  if (data) sessionStorage.setItem(SUBJECTS_CACHE_KEY, JSON.stringify(data));
-  return data;
-}
+const ME_CACHE_KEY = 'me_cache';
 
 function invalidateSubjectsCache() {
   sessionStorage.removeItem(SUBJECTS_CACHE_KEY);
+  sessionStorage.removeItem(ME_CACHE_KEY);
 }
-
-const ME_CACHE_KEY = 'me_cache';
 
 async function getMe() {
-  const cached = sessionStorage.getItem(ME_CACHE_KEY);
-  if (cached) return JSON.parse(cached);
   const data = await api('/api/me');
-  if (data) sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(data));
+  if (data) {
+    const cached = sessionStorage.getItem(ME_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.semester !== data.semester || parsed.is_onboarded !== data.is_onboarded) {
+          sessionStorage.removeItem(SUBJECTS_CACHE_KEY);
+        }
+      } catch (e) {}
+    }
+    sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(data));
+  }
   return data;
 }
+
+async function getSubjects() {
+  const me = await getMe();
+  const cached = sessionStorage.getItem(SUBJECTS_CACHE_KEY);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (me && parsed && (parsed.semester === me.semester || parsed.semester === undefined)) {
+        return parsed;
+      }
+    } catch (e) {}
+    sessionStorage.removeItem(SUBJECTS_CACHE_KEY);
+  }
+
+  const data = await api('/api/subjects');
+  if (data) {
+    data.semester = me ? me.semester : data.semester;
+    sessionStorage.setItem(SUBJECTS_CACHE_KEY, JSON.stringify(data));
+  }
+  return data;
+}
+
 /* ── HTML escaping ───────────────────────────────────────────────────────── */
 
 function escHtml(str) {

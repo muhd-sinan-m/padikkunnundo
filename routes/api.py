@@ -242,6 +242,7 @@ def subjects():
     on_track = _count_on_track(enrollments, marks_map)
 
     return jsonify({
+        "semester": user.semester,
         "subjects": result,
         "stats": {
             "total_subjects": len(enrollments),
@@ -249,6 +250,7 @@ def subjects():
             "on_track_for_aplus": on_track,
         },
     })
+
 
 
 def _count_on_track(enrollments, marks_map: dict) -> int:
