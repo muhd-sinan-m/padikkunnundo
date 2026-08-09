@@ -666,8 +666,7 @@ def _do_rollover_user(user: User) -> None:
         user.is_onboarded = False  # force re-onboarding to pick new elective
 
     elif old_sem in carry_group:
-        # Clone the existing elective enrollment(s) for the new semester
-        # (Mark rows are keyed user_id+subject_id, so no new Mark needed)
+        # Carry forward elective enrollment(s) to the new semester
         group = carry_group[old_sem]
         carry_enrs = (
             Enrollment.query
@@ -677,18 +676,41 @@ def _do_rollover_user(user: User) -> None:
             .all()
         )
         for enr in carry_enrs:
+            old_subj = db.session.get(Subject, enr.subject_id)
+            target_subj_id = enr.subject_id
+
+            if old_subj:
+                # Look for a corresponding subject in the new semester under the same elective_group
+                # (e.g., matching "Spanish 2" for "Spanish 1", or matching language prefix)
+                sem_new_subjs = Subject.query.filter_by(
+                    semester=new_sem, is_elective=True, elective_group=group, is_active=True
+                ).all()
+
+                base_name = old_subj.subject_name.replace("1", "").strip().lower()
+                matched = None
+                for s in sem_new_subjs:
+                    s_base = s.subject_name.replace("2", "").strip().lower()
+                    if s_base == base_name or s.subject_name.lower().startswith(base_name):
+                        matched = s
+                        break
+
+                if matched:
+                    target_subj_id = matched.subject_id
+
             exists = Enrollment.query.filter_by(
                 user_id=user.id,
-                subject_id=enr.subject_id,
+                subject_id=target_subj_id,
                 semester=new_sem,
             ).first()
             if not exists:
                 db.session.add(Enrollment(
                     user_id=user.id,
-                    subject_id=enr.subject_id,
+                    subject_id=target_subj_id,
                     semester=new_sem,
                 ))
+                db.session.add(Mark(user_id=user.id, subject_id=target_subj_id))
         user.is_onboarded = True
+
 
 
 # ── Rollover routes ───────────────────────────────────────────────────────────
