@@ -4,134 +4,104 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>404 — Page Not Found | padikkunnundo.app</title>
-  <meta name="description" content="The page you are looking for could not be found on padikkunnundo.app.">
+  <meta name="description" content="The page you are looking for could not be found.">
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
-    .error-container {
+    .error-page-wrapper {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: var(--spacing-lg);
-      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-      color: #F8FAFC;
+      background: var(--bg-secondary);
     }
-    .error-card {
-      max-width: 520px;
+    .error-card-light {
+      max-width: 500px;
       width: 100%;
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
       border-radius: 24px;
-      padding: 44px 36px;
+      padding: 48px 36px;
       text-align: center;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.05);
     }
-    .error-logo {
-      height: 56px;
+    .error-logo-img {
+      height: 52px;
       width: auto;
       margin-bottom: 24px;
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
     }
-    .error-code-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 16px;
+    .error-pill-indigo {
+      display: inline-block;
+      padding: 5px 16px;
       border-radius: 99px;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1.5px solid rgba(99, 102, 241, 0.4);
-      color: #818CF8;
+      background: #eef2ff;
+      border: 1.5px solid #c7d2fe;
+      color: #4f46e5;
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.5px;
       margin-bottom: 18px;
     }
-    .error-title {
+    .error-heading {
       font-size: 26px;
       font-weight: 900;
-      color: #FFFFFF;
+      color: var(--text-primary);
       margin-bottom: 12px;
     }
-    .error-desc {
+    .error-text {
       font-size: 14px;
-      color: #94A3B8;
+      color: var(--text-secondary);
       line-height: 1.6;
       margin-bottom: 32px;
     }
-    .error-actions {
+    .error-btn-group {
       display: flex;
       gap: 12px;
       justify-content: center;
       flex-wrap: wrap;
     }
-    .btn-secondary-dark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.85rem 1.4rem;
+    .btn-secondary-light {
+      border: 1.5px solid var(--border-color);
+      background: #ffffff;
+      color: var(--text-primary);
+      padding: 0.85rem 1.5rem;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1.5px solid rgba(255, 255, 255, 0.15);
-      color: #F8FAFC;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
       transition: all 0.2s ease;
     }
-    .btn-secondary-dark:hover {
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.25);
-      color: #FFFFFF;
-    }
-    .btn-primary-glow {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.85rem 1.4rem;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #6366F1, #4F46E5);
-      color: #FFFFFF;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      border: none;
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
-      transition: all 0.2s ease;
-    }
-    .btn-primary-glow:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 24px rgba(99, 102, 241, 0.45);
+    .btn-secondary-light:hover {
+      background: var(--bg-secondary);
+      border-color: var(--gray-300);
     }
   </style>
 </head>
-<body>
+<body class="onboarding-body">
 
-<div class="error-container">
-  <div class="error-card">
+<div class="error-page-wrapper">
+  <div class="error-card-light">
     <a href="/">
-      <img src="{{ url_for('static', filename='img/logo.webp') }}" alt="padikkunnundo.app logo" class="error-logo">
+      <img src="{{ url_for('static', filename='img/logo.webp') }}" alt="padikkunnundo.app logo" class="error-logo-img">
     </a>
     <div>
-      <span class="error-code-pill">&#128269; 404 ERROR</span>
+      <span class="error-pill-indigo">404 ERROR</span>
     </div>
-    <h1 class="error-title">Oops! Page not found</h1>
-    <p class="error-desc">
-      The page you are looking for doesn't exist, may have been removed, or the link you followed is broken.
+    <h1 class="error-heading">Page not found</h1>
+    <p class="error-text">
+      The page you are looking for doesn't exist, may have been moved, or the link you followed is broken.
     </p>
 
-    <div class="error-actions">
-      <button onclick="history.back()" class="btn-secondary-dark">
-        &larr; Go Back
+    <div class="error-btn-group">
+      <button onclick="history.back()" class="btn-secondary-light">
+        Go Back
       </button>
-      <a href="/dashboard" class="btn-primary-glow">
-        &#127968; Back to Dashboard
+      <a href="/dashboard" class="btn-primary" style="width: auto; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 0.85rem 1.6rem;">
+        Back to Dashboard
       </a>
     </div>
   </div>
@@ -139,3 +109,4 @@
 
 </body>
 </html>
+
