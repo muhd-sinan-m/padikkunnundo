@@ -318,6 +318,15 @@ def admin_subject_add():
         if not is_elective:
             elective_group = None
 
+        if db.engine.dialect.name == "postgresql":
+            try:
+                db.session.execute(db.text(
+                    "SELECT setval(pg_get_serial_sequence('subjects', 'subject_id'), COALESCE((SELECT MAX(subject_id) FROM subjects), 1));"
+                ))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
         subject = Subject(
             subject_name=subject_name,
             semester=semester,
@@ -327,10 +336,17 @@ def admin_subject_add():
             elective_group=elective_group,
         )
 
-        db.session.add(subject)
-        db.session.commit()
-        flash("Subject added.", "success")
+        try:
+            db.session.add(subject)
+            db.session.commit()
+            flash("Subject added.", "success")
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error("Failed to add subject: %s", e)
+            flash("Failed to add subject due to a database error. Sequence resynced — please try submitting again.", "error")
+
         return redirect(url_for("admin.admin_subjects_list"))
+
 
     return render_template(
         "admin.html",

@@ -126,14 +126,31 @@ def create_app(config_class=Config) -> Flask:
         return cleaned_name
 
     def ensure_schema() -> None:
-        """Create missing tables when a local SQLite database is fresh."""
+        """Create missing tables when a database is fresh and sync sequence counters on PostgreSQL."""
         inspector = inspect(db.engine)
         if "users" not in inspector.get_table_names():
             db.create_all()
 
+        if db.engine.dialect.name == "postgresql":
+            for table, pk in [
+                ("subjects", "subject_id"),
+                ("users", "id"),
+                ("enrollments", "id"),
+                ("marks", "id"),
+                ("announcements", "id"),
+            ]:
+                try:
+                    db.session.execute(db.text(
+                        f"SELECT setval(pg_get_serial_sequence('{table}', '{pk}'), COALESCE((SELECT MAX({pk}) FROM {table}), 1));"
+                    ))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
     # ── Create tables on first run ────────────────────────────────────────────
     with app.app_context():
         ensure_schema()
+
 
     @app.cli.command("init-db")
     def init_db_command():
