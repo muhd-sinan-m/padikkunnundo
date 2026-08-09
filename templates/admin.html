@@ -719,41 +719,93 @@
 
         <!-- Rollover -->
         {% if section == 'rollover' %}
-        <div class="section-heading" style="margin-bottom:12px;">Semester Rollover</div>
+        <div class="section-heading" style="margin-bottom:16px;">Semester Rollover</div>
 
-        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:18px;">
-          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Current Semester Breakdown</div>
-          <div style="padding:14px 20px;overflow:auto;">
-            <table style="width:100%;border-collapse:collapse;min-width:520px;">
-              <thead>
-                <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
-                  <th style="padding:10px 6px;">Semester</th>
-                  <th style="padding:10px 6px;">Students</th>
-                  <th style="padding:10px 6px;">&rarr; Will Become</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for sem, cnt in users_per_semester.items()|sort %}
-                <tr style="border-top:1px solid var(--border-color);">
-                  <td style="padding:10px 6px;font-weight:900;">Sem {{ sem }}</td>
-                  <td style="padding:10px 6px;">{{ cnt }} student{{ 's' if cnt != 1 }}</td>
-                  <td style="padding:10px 6px;color:var(--text-secondary);">
-                    {% if sem < 6 %}Sem {{ sem + 1 }}{% else %}<span style="color:var(--text-secondary);">Already at max</span>{% endif %}
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+        <!-- Option 1: Bulk Semester Rollover -->
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:24px;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;display:flex;align-items:center;gap:8px;">
+            <span>🎓</span> Option 1: Bulk Semester Rollover (All Students)
+          </div>
+          <div style="padding:16px 20px;">
+            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Current Semester Breakdown:</div>
+            <div style="overflow:auto;margin-bottom:16px;">
+              <table style="width:100%;border-collapse:collapse;min-width:520px;">
+                <thead>
+                  <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
+                    <th style="padding:8px 6px;">Semester</th>
+                    <th style="padding:8px 6px;">Students</th>
+                    <th style="padding:8px 6px;">&rarr; Will Become</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for sem, cnt in users_per_semester.items()|sort %}
+                  <tr style="border-top:1px solid var(--border-color);">
+                    <td style="padding:10px 6px;font-weight:900;">Sem {{ sem }}</td>
+                    <td style="padding:10px 6px;">{{ cnt }} student{{ 's' if cnt != 1 }}</td>
+                    <td style="padding:10px 6px;color:var(--text-secondary);">
+                      {% if sem < 6 %}Sem {{ sem + 1 }}{% else %}<span style="color:var(--text-secondary);">Already at max</span>{% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              <button type="button" class="btn-primary" id="open-rollover-modal"
+                style="width:auto;padding:0.8rem 1.5rem;">
+                🎓 Preview &amp; Roll Over All Students
+              </button>
+              <span style="font-size:12px;color:var(--text-secondary);">Preview all semesters and exclude specific students if needed.</span>
+            </div>
           </div>
         </div>
 
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-          <button type="button" class="btn-primary" id="open-rollover-modal"
-            style="width:auto;padding:0.88rem 1.6rem;">
-            🎓 Preview &amp; Roll Over Students
-          </button>
-          <span style="font-size:12px;color:var(--text-secondary);">You can review and exclude individual students before confirming.</span>
+        <!-- Option 2: Individual Student Rollover -->
+        <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:24px;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;display:flex;align-items:center;gap:8px;">
+            <span>👤</span> Option 2: Individual Student Rollover
+          </div>
+          <div style="padding:20px;">
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:0;margin-bottom:16px;">
+              Select a specific student to advance them to their next semester individually without affecting other students.
+            </p>
+            {% if eligible_students %}
+            <form id="single-rollover-form" method="post" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select id="single-student-select" class="form-select" style="max-width:420px;padding:10px 14px;border-radius:12px;" required>
+                <option value="" disabled selected>Select a student to roll over…</option>
+                {% for st in eligible_students %}
+                <option value="{{ st.id }}">
+                  {{ st.name }} (Sem {{ st.semester }} &rarr; Sem {{ st.semester + 1 }})
+                </option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn-primary" style="width:auto;padding:0.75rem 1.4rem;background:#f59e0b;border-color:#f59e0b;box-shadow:0 8px 16px rgba(245,158,11,.25);">
+                ⚡ Roll Over Selected Student
+              </button>
+            </form>
+            <script>
+            document.getElementById('single-rollover-form').addEventListener('submit', function(e) {
+              const sel = document.getElementById('single-student-select');
+              if (!sel || !sel.value) {
+                e.preventDefault();
+                alert('Please select a student first.');
+                return;
+              }
+              const studentName = sel.options[sel.selectedIndex].text;
+              if (!confirm('Are you sure you want to roll over ' + studentName + '?')) {
+                e.preventDefault();
+                return;
+              }
+              this.action = '/admin/users/' + sel.value + '/rollover';
+            });
+            </script>
+            {% else %}
+            <div style="font-size:13px;color:var(--text-secondary);">No eligible students available for rollover.</div>
+            {% endif %}
+          </div>
         </div>
+
 
         <!-- ── Rollover Modal ──────────────────────────────────────────────── -->
         <div id="rollover-modal"

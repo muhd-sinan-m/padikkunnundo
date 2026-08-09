@@ -730,11 +730,19 @@ def admin_rollover():
         for sem, cnt in users_per_semester
         if sem is not None
     }
+    eligible_students = (
+        User.query
+        .filter(User.semester.isnot(None), User.semester < 6)
+        .order_by(User.name.asc())
+        .all()
+    )
     return render_template(
         "admin.html",
         section="rollover",
         users_per_semester=users_per_semester_dict,
+        eligible_students=eligible_students,
     )
+
 
 
 @admin_bp.route("/rollover/students")
