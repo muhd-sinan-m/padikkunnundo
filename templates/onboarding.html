@@ -164,7 +164,6 @@ const formError       = document.getElementById('form-error');
   const peNote      = document.getElementById('pe-note');
 
   semesterSelect.addEventListener('change', async () => {
-    const sem = parseInt(semesterSelect.value);
     // Hide sections before determining what to show
     electiveSection.style.display = 'none';
     carryoverSection.style.display = 'none';

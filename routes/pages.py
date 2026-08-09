@@ -17,13 +17,23 @@ from routes.auth import get_current_user, login_required, _create_sso_jwt
 pages_bp = Blueprint("pages", __name__)
 
 
+def _onboarding_redirect():
+    """Return the correct redirect for a not-yet-onboarded user."""
+    from routes.auth import get_current_user as _gcu
+    user = _gcu()
+    # Post-rollover: semester already set by admin, just needs elective re-pick
+    if user and user.semester is not None:
+        return redirect(url_for("pages.rollover_onboarding"))
+    return redirect(url_for("pages.onboarding"))
+
+
 @pages_bp.route("/")
 def index():
     user = get_current_user()
     if user:
         if user.is_onboarded:
             return redirect(url_for("pages.dashboard"))
-        return redirect(url_for("pages.onboarding"))
+        return _onboarding_redirect()
     return redirect(url_for("pages.login"))
 
 
@@ -42,7 +52,22 @@ def onboarding():
     user = get_current_user()
     if user.is_onboarded:
         return redirect(url_for("pages.dashboard"))
+    # If semester already set (post-rollover), send to the right page
+    if user.semester is not None:
+        return redirect(url_for("pages.rollover_onboarding"))
     return render_template("onboarding.html", user=user)
+
+
+@pages_bp.route("/rollover-onboarding")
+@login_required
+def rollover_onboarding():
+    user = get_current_user()
+    if user.is_onboarded:
+        return redirect(url_for("pages.dashboard"))
+    # If no semester set (fresh user), send to normal onboarding
+    if user.semester is None:
+        return redirect(url_for("pages.onboarding"))
+    return render_template("rollover_onboarding.html", user=user)
 
 
 @pages_bp.route("/dashboard")
@@ -50,7 +75,7 @@ def onboarding():
 def dashboard():
     user = get_current_user()
     if not user.is_onboarded:
-        return redirect(url_for("pages.onboarding"))
+        return _onboarding_redirect()
     return render_template(
         "dashboard.html",
         user=user,
@@ -70,7 +95,7 @@ def dashboard():
 def marks():
     user = get_current_user()
     if not user.is_onboarded:
-        return redirect(url_for("pages.onboarding"))
+        return _onboarding_redirect()
     return render_template("marks.html", user=user)
 
 
@@ -79,7 +104,7 @@ def marks():
 def calculator():
     user = get_current_user()
     if not user.is_onboarded:
-        return redirect(url_for("pages.onboarding"))
+        return _onboarding_redirect()
     return render_template("calculator.html", user=user)
 
 
@@ -88,7 +113,7 @@ def calculator():
 def about():
     user = get_current_user()
     if not user.is_onboarded:
-        return redirect(url_for("pages.onboarding"))
+        return _onboarding_redirect()
     return render_template("about.html", user=user, active_page="about")
 
 

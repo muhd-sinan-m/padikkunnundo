@@ -114,7 +114,10 @@ def enroll():
             db.session.add(Mark(user_id=user.id, subject_id=subject.subject_id))
 
     # ── Enroll in the chosen elective(s) ─────────────────────────────────────────
-    if int(semester) == 5:
+    # Sems 5 and 6 both use the pe_5 group (3 professional electives).
+    # Sem 6 students are re-picking after rollover from sem 5.
+    if int(semester) in (5, 6):
+
         elective_subject_ids = elective_subject_ids or []
         if not isinstance(elective_subject_ids, list) or len(elective_subject_ids) != 3:
             return jsonify({"error": "Please select exactly 3 professional electives."}), 400

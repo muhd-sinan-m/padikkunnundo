@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Your Specialisation — padikkunnundo.app</title>
+  <meta name="description" content="Choose your new specialisation for your updated semester.">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="onboarding-body">
+
+<div class="onboarding-shell">
+
+  <!-- Left: Form -->
+  <div class="onboarding-form-col">
+    <div class="onboarding-card">
+      <h1 class="onboarding-heading">Choose your specialisation</h1>
+      <p class="onboarding-subheading">
+        Welcome back, {{ user.name.split()[0] }}! Your semester has been advanced by your admin.
+        Please choose your specialisation for your new semester to continue.
+      </p>
+
+      <!-- Read-only course + semester display -->
+      <div style="background:var(--bg-secondary);border:1.5px solid var(--border-color);
+                  border-radius:14px;padding:14px 20px;display:flex;gap:28px;
+                  margin-bottom:calc(var(--spacing-lg) * 0.5);">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);
+                      text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Course</div>
+          <div style="font-weight:800;font-size:15px;">{{ user.course or 'BCA' }}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);
+                      text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Semester</div>
+          <div style="font-weight:800;font-size:15px;">Semester {{ user.semester }}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:var(--spacing-lg);">
+        &#128274; Course and semester are set by your admin and cannot be changed here.
+      </div>
+
+      <form id="rollover-form" novalidate>
+        <input type="hidden" id="r-semester" value="{{ user.semester }}">
+        <input type="hidden" id="r-course"   value="{{ user.course or 'BCA' }}">
+
+        {% set sem = user.semester %}
+
+        {# ── Sem 3 or 4: spec_3_4 single dropdown ── #}
+        {% if sem in (3, 4) %}
+        <div class="form-group" id="spec-section">
+          <label class="form-label" for="elective-select">Specialization Elective</label>
+          <select class="form-select" id="elective-select">
+            <option value="" disabled selected>Loading electives&#8230;</option>
+          </select>
+          <p class="elective-note">
+            {% if sem == 3 %}
+              You can update your specialization choice again when Semester 4 begins.
+            {% else %}
+              You can continue with your Semester 3 specialization or choose a different one.
+            {% endif %}
+          </p>
+        </div>
+
+        {# ── Sem 5 or 6: pe_5 three-group picker ── #}
+        {% elif sem in (5, 6) %}
+        <div id="pe-section" style="margin-bottom:var(--spacing-lg);">
+          <label class="form-label">
+            Professional Electives
+            {% if sem == 6 %}
+            <span style="font-size:11px;color:var(--text-secondary);font-weight:600;">
+              &mdash; you may change your Semester 5 selections
+            </span>
+            {% endif %}
+          </label>
+          <div id="pe-counter" style="margin-top:var(--spacing-sm);font-weight:800;color:var(--text-secondary);">
+            0 of 3 selected
+          </div>
+          <div class="pe-grid" id="pe-grid" style="margin-top:var(--spacing-md);">
+            <div class="pe-col">
+              <div class="pe-specialization">Specialization Group 1</div>
+              <div class="pe-option-list">
+                <select class="form-select" id="pe-group-1-select">
+                  <option value="" disabled selected>Select one from Group 1&#8230;</option>
+                </select>
+              </div>
+            </div>
+            <div class="pe-col">
+              <div class="pe-specialization">Specialization Group 2</div>
+              <div class="pe-option-list">
+                <select class="form-select" id="pe-group-2-select">
+                  <option value="" disabled selected>Select one from Group 2&#8230;</option>
+                </select>
+              </div>
+            </div>
+            <div class="pe-col">
+              <div class="pe-specialization">Specialization Group 3</div>
+              <div class="pe-option-list">
+                <select class="form-select" id="pe-group-3-select">
+                  <option value="" disabled selected>Select one from Group 3&#8230;</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <p class="elective-note" style="margin-top:var(--spacing-md);margin-bottom:0;">
+            Choose exactly 3 electives: one from each specialization group.
+          </p>
+        </div>
+
+        {% else %}
+        <p class="elective-note">Your account is being set up&#8230;</p>
+        {% endif %}
+
+        <div id="form-error" style="display:none;margin-top:var(--spacing-md);" class="login-error" role="alert"></div>
+
+        <button type="submit" class="btn-primary" id="enroll-btn">
+          Update my dashboard &#x2192;
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: Image -->
+  <div class="onboarding-visual-col">
+    <div class="onboarding-visual-placeholder">
+      <img src="{{ url_for('static', filename='img/padikkunnundo_nobg_home.webp') }}"
+           alt="Padikkunnundo illustration"
+           class="onboarding-visual-img">
+    </div>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+/* ── Rollover onboarding JS ─────────────────────────────────────────────── */
+
+const sem       = parseInt(document.getElementById('r-semester').value);
+const course    = document.getElementById('r-course').value;
+const form      = document.getElementById('rollover-form');
+const enrollBtn = document.getElementById('enroll-btn');
+const formError = document.getElementById('form-error');
+
+function showError(msg) {
+  formError.textContent = msg;
+  formError.style.display = 'block';
+}
+
+/* ── Sem 3 / 4 — spec_3_4 single dropdown ─────────────────────────────── */
+{% if user.semester in (3, 4) %}
+(async function loadSpec() {
+  const sel = document.getElementById('elective-select');
+  enrollBtn.disabled = true;
+  enrollBtn.textContent = 'Loading\u2026';
+
+  const data = await api('/api/electives/' + sem);
+  if (!data || !data.electives || !data.electives.length) {
+    sel.innerHTML = '<option value="" disabled selected>No electives found</option>';
+    showError('Could not load electives. Please try refreshing.');
+    return;
+  }
+
+  sel.innerHTML = '<option value="" disabled selected>Select an elective\u2026</option>';
+  data.electives.forEach(el => {
+    const opt = document.createElement('option');
+    opt.value = el.subject_id;
+    opt.textContent = el.subject_name;
+    sel.appendChild(opt);
+  });
+
+  enrollBtn.disabled = false;
+  enrollBtn.textContent = 'Update my dashboard \u2192';
+})();
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formError.style.display = 'none';
+
+  const sel = document.getElementById('elective-select');
+  const electiveId = parseInt(sel.value) || null;
+  if (!electiveId) {
+    showError('Please choose your specialization elective.');
+    return;
+  }
+
+  enrollBtn.disabled = true;
+  enrollBtn.textContent = 'Saving\u2026';
+
+  const result = await api('/api/enroll', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ semester: sem, course, elective_subject_id: electiveId }),
+  });
+
+  if (result && result.ok) {
+    window.location.href = '/dashboard';
+  } else {
+    showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');
+    enrollBtn.disabled = false;
+    enrollBtn.textContent = 'Update my dashboard \u2192';
+  }
+});
+{% endif %}
+
+/* ── Sem 5 / 6 — pe_5 three-group picker ──────────────────────────────── */
+{% if user.semester in (5, 6) %}
+const peCounterEl = document.getElementById('pe-counter');
+const peGroup1    = document.getElementById('pe-group-1-select');
+const peGroup2    = document.getElementById('pe-group-2-select');
+const peGroup3    = document.getElementById('pe-group-3-select');
+
+function updatePeCounter() {
+  const count = [peGroup1, peGroup2, peGroup3].filter(s => s && s.value).length;
+  const done  = count === 3;
+  if (peCounterEl) {
+    peCounterEl.textContent = done ? '\u2713 3 selected' : count + ' of 3 selected';
+    peCounterEl.style.color = done ? 'var(--color-green)' : 'var(--text-secondary)';
+  }
+  enrollBtn.disabled   = !done;
+  enrollBtn.textContent = done
+    ? 'Update my dashboard \u2192'
+    : 'Select 3 electives to continue';
+}
+
+(async function loadPe() {
+  enrollBtn.disabled    = true;
+  enrollBtn.textContent = 'Loading\u2026';
+
+  // pe_5 subjects are stored with semester=5 in the database
+  const data = await api('/api/electives/5');
+  if (!data || !data.electives || !data.electives.length) {
+    showError('Could not load professional electives. Please try refreshing.');
+    return;
+  }
+
+  const groups = { g1: [], g2: [], g3: [] };
+  data.electives.forEach(el => {
+    const n = (el.subject_name || '').toLowerCase();
+    if (n.includes('introduction to data science') || n.includes('deep learning') ||
+        n.includes('ethical hacking') || n.includes('django') || n.includes('flask') ||
+        n.includes('web development with python')) {
+      groups.g1.push(el);
+    } else if (n.includes('time series') || n.includes('digital image') ||
+               n.includes('cloud security') || n.includes('dart') || n.includes('flutter')) {
+      groups.g2.push(el);
+    } else if (n.includes('machine learning') || n.includes('natural language') ||
+               n.includes('iot security') || n.includes('react')) {
+      groups.g3.push(el);
+    } else {
+      groups.g1.push(el);
+    }
+  });
+
+  function fillSelect(sel, items, placeholder) {
+    if (!sel) return;
+    sel.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = ''; ph.disabled = true; ph.selected = true;
+    ph.textContent = placeholder;
+    sel.appendChild(ph);
+    items.forEach(el => {
+      const opt = document.createElement('option');
+      opt.value = el.subject_id;
+      opt.textContent = el.subject_name;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', updatePeCounter);
+  }
+
+  fillSelect(peGroup1, groups.g1, 'Select one from Group 1\u2026');
+  fillSelect(peGroup2, groups.g2, 'Select one from Group 2\u2026');
+  fillSelect(peGroup3, groups.g3, 'Select one from Group 3\u2026');
+  updatePeCounter();
+})();
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formError.style.display = 'none';
+
+  const chosen = [peGroup1, peGroup2, peGroup3]
+    .map(s => parseInt(s ? s.value : '') || null)
+    .filter(Boolean);
+
+  if (chosen.length !== 3) {
+    showError('Please select exactly 3 professional electives.');
+    return;
+  }
+
+  enrollBtn.disabled    = true;
+  enrollBtn.textContent = 'Saving\u2026';
+
+  const result = await api('/api/enroll', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      semester: sem,
+      course,
+      elective_subject_id: null,
+      elective_subject_ids: chosen,
+    }),
+  });
+
+  if (result && result.ok) {
+    window.location.href = '/dashboard';
+  } else {
+    showError((result && result.error) ? result.error : 'Something went wrong. Please try again.');
+    enrollBtn.disabled    = false;
+    enrollBtn.textContent = 'Update my dashboard \u2192';
+  }
+});
+{% endif %}
+
+{% if user.semester not in (3, 4, 5, 6) %}
+// Unexpected state — go to dashboard
+window.location.href = '/dashboard';
+{% endif %}
+</script>
+</body>
+</html>

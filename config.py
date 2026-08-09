@@ -76,11 +76,11 @@ class Config:
     # Password reset token expiry in seconds (default: 1 hour)
     RESET_TOKEN_EXPIRY_SECONDS: int = int(os.environ.get("RESET_TOKEN_EXPIRY_SECONDS", "3600"))
 
-    # ── Sister Platform URLs ──────────────────────────────────────────────────
-    PYQPORTAL_URL: str = "https://pyqportal.app"
-    MCQ_QUIZ_URL: str = "https://mcq-portal-ldf6.onrender.com/"
-    PLACEMENT_URL: str = "https://lab.pyqportal.app"
-    TOPIC_URL: str = "https://passavam.onrender.com"
+    # ── Sister Platform URLs ─────────────────────────────────────────────
+    PYQPORTAL_URL: str = os.environ.get("PYQPORTAL_URL", "https://pyqportal.app")
+    MCQ_QUIZ_URL: str = os.environ.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/")
+    PLACEMENT_URL: str = os.environ.get("PLACEMENT_URL", "https://lab.pyqportal.app")
+    TOPIC_URL: str = os.environ.get("TOPIC_URL", "https://passavam.onrender.com")
     MARK_ANALYSER_URL: str = os.environ.get("MARKKUNDO_URL", "https://markkundo.app")
     DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
 

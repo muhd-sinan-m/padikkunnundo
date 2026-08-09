@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import wraps
 from typing import Any
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for, current_app
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for, current_app
 
 from models import Announcement, Enrollment, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
@@ -580,6 +580,103 @@ def admin_user_electives(user_id: int):
     )
 
 
+def _do_rollover_user(user: User) -> None:
+    """
+    Smart rollover for one student.
+
+    Elective handling by transition:
+      Sem 1 → 2  carry lang_1_2   (clone enrollment, stay onboarded)
+      Sem 2 → 3  drop lang_1_2    (needs spec_3_4, set is_onboarded=False)
+      Sem 3 → 4  carry spec_3_4   (clone enrollment, stay onboarded)
+      Sem 4 → 5  drop spec_3_4    (needs pe_5, set is_onboarded=False)
+      Sem 5 → 6  carry pe_5       (clone enrollment, stay onboarded)
+    """
+    if user.semester is None or int(user.semester) >= 6:
+        return
+
+    old_sem = int(user.semester)
+    new_sem = old_sem + 1
+
+    # Only elective group that CARRIES FORWARD (cloned to new sem)
+    # sem 1 → 2: lang_1_2 persists, student stays onboarded
+    carry_group: dict[int, str] = {
+        1: "lang_1_2",
+    }
+    # Elective groups DROPPED at this boundary (student re-picks on next login)
+    # sem 2 → 3 : lang_1_2 done, pick spec_3_4 for the first time
+    # sem 3 → 4 : can change the spec_3_4 choice made in sem 3
+    # sem 4 → 5 : spec_3_4 done, pick pe_5 for the first time
+    # sem 5 → 6 : can change the pe_5 choice made in sem 5
+    drop_group: dict[int, str] = {
+        2: "lang_1_2",
+        3: "spec_3_4",
+        4: "spec_3_4",
+        5: "pe_5",
+    }
+
+    user.semester = new_sem
+
+    # Enroll in all core subjects for the new semester
+    core_subjects = Subject.query.filter_by(
+        semester=new_sem, is_elective=False, is_active=True
+    ).all()
+    for subj in core_subjects:
+        existing = Enrollment.query.filter_by(
+            user_id=user.id, subject_id=subj.subject_id
+        ).first()
+        if not existing:
+            db.session.add(Enrollment(
+                user_id=user.id,
+                subject_id=subj.subject_id,
+                semester=new_sem,
+            ))
+            db.session.add(Mark(user_id=user.id, subject_id=subj.subject_id))
+
+    if old_sem in drop_group:
+        # Remove old elective enrollments & marks — student will re-pick
+        group = drop_group[old_sem]
+        old_enrs = (
+            Enrollment.query
+            .filter_by(user_id=user.id)
+            .join(Subject)
+            .filter(Subject.is_elective == True, Subject.elective_group == group)
+            .all()
+        )
+        for enr in old_enrs:
+            Mark.query.filter_by(
+                user_id=user.id, subject_id=enr.subject_id
+            ).delete(synchronize_session=False)
+            db.session.delete(enr)
+        user.is_onboarded = False  # force re-onboarding to pick new elective
+
+    elif old_sem in carry_group:
+        # Clone the existing elective enrollment(s) for the new semester
+        # (Mark rows are keyed user_id+subject_id, so no new Mark needed)
+        group = carry_group[old_sem]
+        carry_enrs = (
+            Enrollment.query
+            .filter_by(user_id=user.id)
+            .join(Subject)
+            .filter(Subject.is_elective == True, Subject.elective_group == group)
+            .all()
+        )
+        for enr in carry_enrs:
+            exists = Enrollment.query.filter_by(
+                user_id=user.id,
+                subject_id=enr.subject_id,
+                semester=new_sem,
+            ).first()
+            if not exists:
+                db.session.add(Enrollment(
+                    user_id=user.id,
+                    subject_id=enr.subject_id,
+                    semester=new_sem,
+                ))
+        user.is_onboarded = True
+
+
+# ── Rollover routes ───────────────────────────────────────────────────────────
+
 @admin_bp.route("/rollover")
 @login_required
 @admin_required
@@ -602,17 +699,84 @@ def admin_rollover():
     )
 
 
+@admin_bp.route("/rollover/students")
+@login_required
+@admin_required
+def admin_rollover_students():
+    """JSON — list of all students with semester info for the rollover modal."""
+    users = (
+        User.query
+        .filter(User.semester.isnot(None))
+        .order_by(User.semester.asc(), User.name.asc())
+        .all()
+    )
+    return jsonify([
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email or "",
+            "semester": u.semester,
+            "rolled_to": u.semester + 1 if u.semester < 6 else 6,
+            "at_max": u.semester >= 6,
+        }
+        for u in users
+    ])
+
+
 @admin_bp.route("/rollover/confirm", methods=["POST"])
 @login_required
 @admin_required
 def admin_rollover_confirm():
-    # Increment semester by 1 for all users where semester < 6, cap at 6.
-    users = User.query.filter(User.semester.isnot(None)).all()
+    """
+    Roll over selected students.
+    Accepts user_ids[] (list of int) from the modal form.
+    If user_ids is empty, rolls over ALL eligible students.
+    """
+    raw_ids = request.form.getlist("user_ids")
+    if raw_ids:
+        try:
+            user_ids = [int(x) for x in raw_ids if x]
+        except ValueError:
+            flash("Invalid user IDs.", "error")
+            return redirect(url_for("admin.admin_rollover"))
+        users = User.query.filter(
+            User.id.in_(user_ids),
+            User.semester.isnot(None),
+        ).all()
+    else:
+        users = User.query.filter(User.semester.isnot(None)).all()
+
+    count = 0
     for u in users:
-        if u.semester < 6:
-            u.semester = u.semester + 1
-        else:
-            u.semester = 6
+        if u.semester is not None and int(u.semester) < 6:
+            _do_rollover_user(u)
+            count += 1
+
     db.session.commit()
-    flash("Rollover completed.", "success")
+    flash(f"Rollover completed for {count} student(s).", "success")
     return redirect(url_for("admin.admin_dashboard"))
+
+
+@admin_bp.route("/users/<int:user_id>/rollover", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_rollover(user_id: int):
+    """Roll over a single student immediately."""
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
+    if user.semester is None or int(user.semester) >= 6:
+        flash(
+            f"{user.name} is already at Semester 6 or has no semester set.",
+            "error",
+        )
+        return redirect(url_for("admin.admin_users_list"))
+
+    old_sem = int(user.semester)
+    _do_rollover_user(user)
+    db.session.commit()
+    flash(
+        f"Rolled over {user.name} from Semester {old_sem} to Semester {user.semester}.",
+        "success",
+    )
+    return redirect(url_for("admin.admin_users_list"))

@@ -119,8 +119,61 @@ function getGreeting(name) {
   const closeBtn = document.getElementById('close-notice-panel');
   const overlay = document.getElementById('notice-overlay');
   const panel = document.getElementById('notice-panel');
+  const pane = document.getElementById('pane-notices');
+  const badge = document.getElementById('bell-badge');
 
   if (!openBtn || !panel) return;   // Not on a page that has the panel.
+
+  let loaded = false;
+
+  function renderAnnouncements(items) {
+    if (!pane) return;
+    if (!items || items.length === 0) {
+      pane.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📢</div>
+          <div class="empty-state-title">No notices yet</div>
+          <div class="empty-state-desc">Admin notices will appear here.</div>
+        </div>`;
+      return;
+    }
+    // Update badge
+    if (badge) {
+      badge.textContent = items.length > 9 ? '9+' : items.length;
+      badge.style.display = 'flex';
+    }
+    pane.innerHTML = items.map(a => {
+      const date = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      }) : '';
+      return `
+        <div style="border:1.5px solid var(--border-color);border-radius:14px;padding:14px 16px;margin-bottom:10px;background:#fff;">
+          <div style="font-weight:800;font-size:14px;margin-bottom:4px;">${escHtml(a.title)}</div>
+          <div style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;">${escHtml(a.body)}</div>
+          ${date ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:8px;font-weight:600;">${escHtml(date)}</div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  async function loadAnnouncements() {
+    if (loaded) return;
+    loaded = true;
+    if (pane) {
+      pane.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">Loading…</div>`;
+    }
+    const items = await api('/api/notifications');
+    renderAnnouncements(Array.isArray(items) ? items : []);
+  }
+
+  // Pre-fetch on page load so badge shows without opening the panel
+  api('/api/notifications').then(items => {
+    if (Array.isArray(items) && items.length > 0 && badge) {
+      badge.textContent = items.length > 9 ? '9+' : items.length;
+      badge.style.display = 'flex';
+      // Cache for when panel opens
+      window._cachedNotifications = items;
+    }
+  });
 
   function openPanel() {
     panel.classList.add('open');
@@ -128,6 +181,13 @@ function getGreeting(name) {
     overlay.setAttribute('aria-hidden', 'false');
     openBtn.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
+    // Use cached data if available
+    if (window._cachedNotifications) {
+      renderAnnouncements(window._cachedNotifications);
+      loaded = true;
+    } else {
+      loadAnnouncements();
+    }
   }
 
   function closePanel() {
