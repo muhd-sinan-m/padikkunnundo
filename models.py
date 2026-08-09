@@ -48,8 +48,9 @@ class User(db.Model):
     reset_token_hash = db.Column(db.String(255), nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
-    enrollments = db.relationship("Enrollment", back_populates="user", lazy="dynamic")
-    marks = db.relationship("Mark", back_populates="user", lazy="dynamic")
+    enrollments = db.relationship("Enrollment", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
+    marks = db.relationship("Mark", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
+
 
     def to_dict(self) -> dict:
         return {
