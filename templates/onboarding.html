@@ -164,6 +164,9 @@ const formError       = document.getElementById('form-error');
   const peNote      = document.getElementById('pe-note');
 
   semesterSelect.addEventListener('change', async () => {
+    const sem = parseInt(semesterSelect.value);
+    if (!sem) return;
+
     // Hide sections before determining what to show
     electiveSection.style.display = 'none';
     carryoverSection.style.display = 'none';
@@ -194,7 +197,6 @@ const formError       = document.getElementById('form-error');
       await loadProfessionalElectives(5);
       // Button gating handled by counter updates
     } else {
-      // Should not happen due to required dropdown, but keep safe.
       enrollBtn.disabled = false;
       enrollBtn.textContent = 'Set up my dashboard →';
     }
@@ -203,7 +205,11 @@ const formError       = document.getElementById('form-error');
 
 async function loadElectives(semester) {
   const data = await api('/api/electives/' + semester);
-  if (!data || !data.electives || data.electives.length === 0) return;
+  if (!data || !data.electives || data.electives.length === 0) {
+    electiveSelect.innerHTML = '<option value="" disabled selected>No electives available</option>';
+    return;
+  }
+
 
   // Clear and populate
   electiveSelect.innerHTML = '<option value="" disabled selected>Select an elective…</option>';

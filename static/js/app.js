@@ -164,6 +164,9 @@ function getGreeting(name) {
       badge.textContent = items.length > 9 ? '9+' : items.length;
       badge.style.display = 'flex';
     }
+    if (openBtn) {
+      openBtn.classList.add('has-unread');
+    }
     pane.innerHTML = items.map(a => {
       const date = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN', {
         day: 'numeric', month: 'short', year: 'numeric'
@@ -189,9 +192,14 @@ function getGreeting(name) {
 
   // Pre-fetch on page load so badge shows without opening the panel
   api('/api/notifications').then(items => {
-    if (Array.isArray(items) && items.length > 0 && badge) {
-      badge.textContent = items.length > 9 ? '9+' : items.length;
-      badge.style.display = 'flex';
+    if (Array.isArray(items) && items.length > 0) {
+      if (badge) {
+        badge.textContent = items.length > 9 ? '9+' : items.length;
+        badge.style.display = 'flex';
+      }
+      if (openBtn) {
+        openBtn.classList.add('has-unread');
+      }
       // Cache for when panel opens
       window._cachedNotifications = items;
     }
