@@ -83,10 +83,18 @@ def create_app(config_class=Config) -> Flask:
 
     @app.errorhandler(404)
     def not_found(e):
-        from flask import jsonify, request
-        if request.accept_mimetypes.accept_json:
+        from flask import jsonify, render_template, request
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
             return jsonify({"error": "Not found."}), 404
-        return "Page not found.", 404
+        return render_template("404.html"), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        from flask import jsonify, render_template, request
+        if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+            return jsonify({"error": "Internal server error."}), 500
+        return render_template("500.html"), 500
+
 
     @app.after_request
     def add_security_headers(response):
