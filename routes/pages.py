@@ -1,16 +1,7 @@
-"""
-routes/pages.py — HTML page routes served via Jinja2 templates.
-
-Handles the Section 5.4 first-time vs returning user routing:
-  • Not authenticated → /login
-  • Authenticated, not onboarded → /onboarding
-  • Authenticated, onboarded → /dashboard (and other protected pages)
-"""
-
 import time
-
-from flask import Blueprint, current_app, redirect, render_template, url_for
+from urllib.parse import quote
 import jwt
+from flask import Blueprint, current_app, redirect, render_template, request as flask_request, url_for
 
 from routes.auth import get_current_user, login_required, _create_sso_jwt
 
@@ -18,10 +9,7 @@ pages_bp = Blueprint("pages", __name__)
 
 
 def _onboarding_redirect():
-    """Return the correct redirect for a not-yet-onboarded user."""
-    from routes.auth import get_current_user as _gcu
-    user = _gcu()
-    # Post-rollover: semester already set by admin, just needs elective re-pick
+    user = get_current_user()
     if user and user.semester is not None:
         return redirect(url_for("pages.rollover_onboarding"))
     return redirect(url_for("pages.onboarding"))
@@ -52,7 +40,6 @@ def onboarding():
     user = get_current_user()
     if user.is_onboarded:
         return redirect(url_for("pages.dashboard"))
-    # If semester already set (post-rollover), send to the right page
     if user.semester is not None:
         return redirect(url_for("pages.rollover_onboarding"))
     return render_template("onboarding.html", user=user)
@@ -64,7 +51,6 @@ def rollover_onboarding():
     user = get_current_user()
     if user.is_onboarded:
         return redirect(url_for("pages.dashboard"))
-    # If no semester set (fresh user), send to normal onboarding
     if user.semester is None:
         return redirect(url_for("pages.onboarding"))
     return render_template("rollover_onboarding.html", user=user)
@@ -120,20 +106,12 @@ def about():
 @pages_bp.route("/go-to-doubtundo")
 @login_required
 def go_to_doubtundo():
-    """
-    SSO bridge to Doubtundo.
-
-    Mints a short-lived JWT (5 min) containing the current user's identity
-    and redirects to DOUBTUNDO_URL/auth?token=<token>.
-    Doubtundo verifies the token with the shared JWT_SECRET and signs the
-    user in without requiring a separate login.
-    """
     user = get_current_user()
     payload = {
         "user_id": str(user.id),
         "email":   user.email,
         "name":    user.name,
-        "exp":     int(time.time()) + 300,  # 5-minute expiry
+        "exp":     int(time.time()) + 300,
     }
     token = jwt.encode(
         payload,
@@ -147,25 +125,10 @@ def go_to_doubtundo():
 @pages_bp.route("/go-to-mcq")
 @login_required
 def go_to_mcq():
-    """
-    SSO bridge to the MCQ Quiz portal.
-
-    Mints a 5-minute JWT (signed with JWT_SECRET, iss="padikkunnundo",
-    aud="mcq-quiz") and redirects to {MCQ_QUIZ_URL}/sso/login?token=<jwt>.
-    The MCQ portal validates the token with the shared JWT_SECRET and
-    signs the user in without requiring a separate login.
-
-    Optional query param:
-      ?next=<path>  — forwarded to the MCQ portal so it can redirect the
-                       user to a specific page after login.
-    """
-    from flask import request as flask_request
-    from urllib.parse import quote
-
     user = get_current_user()
     token = _create_sso_jwt(user)
 
-    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/").rstrip("/")
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "").rstrip("/")
     target = f"{quiz_url}/sso/login?token={token}"
 
     next_path = flask_request.args.get("next", "")

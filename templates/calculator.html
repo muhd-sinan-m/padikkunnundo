@@ -61,7 +61,9 @@
       <!-- Mobile image — visible only on mobile, sits between the two cards -->
       <div class="calc-mobile-image">
         <img src="{{ url_for('static', filename='img/logo_calc.webp') }}"
-             alt="padikkunnundo illustration">
+             alt="padikkunnundo illustration"
+             loading="lazy"
+             decoding="async">
       </div>
 
       <!-- Formula card — desktop only -->
@@ -88,6 +90,7 @@
       <img src="{{ url_for('static', filename='img/logo_calc.webp') }}"
            alt="padikkunnundo illustration"
            class="calc-hero-img"
+           decoding="async"
            loading="eager">
     </div>
 

@@ -7,7 +7,7 @@ INSTANCE_DIR.mkdir(exist_ok=True)
 
 
 class Config:
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "")
 
     SQLALCHEMY_DATABASE_URI: str = os.environ.get(
         "DATABASE_URL", f"sqlite:///{INSTANCE_DIR / 'padikkunnundo.db'}"
@@ -21,7 +21,6 @@ class Config:
         "pool_timeout": 30,
     }
 
-    DEV_BYPASS_AUTH: bool = os.environ.get("DEV_BYPASS_AUTH", "false").lower() == "true"
     GOOGLE_CLIENT_ID: str = os.environ.get("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
@@ -30,7 +29,7 @@ class Config:
 
     SESSION_TOKEN_EXPIRY_DAYS: int = 30
     JWT_ALGORITHM: str = "HS256"
-    JWT_SECRET: str = os.environ.get("JWT_SECRET", "dev-only-jwt-secret")
+    JWT_SECRET: str = os.environ.get("JWT_SECRET", "")
     SSO_TOKEN_EXPIRY_SECONDS: int = int(os.environ.get("SSO_TOKEN_EXPIRY_SECONDS", "300"))
 
     RATELIMIT_ENABLED: bool = os.environ.get("RATELIMIT_ENABLED", "true").lower() == "true"
@@ -51,5 +50,5 @@ class Config:
     MARK_ANALYSER_URL: str = os.environ.get("MARKKUNDO_URL", "https://markkundo.app")
     DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
 
-    SSO_SECRET: str = os.environ.get("SSO_SECRET", "dev-only-sso-secret")
+    SSO_SECRET: str = os.environ.get("SSO_SECRET", "")
     MARKKUNDO_SSO_EXPIRY_SECONDS: int = 300

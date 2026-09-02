@@ -28,7 +28,7 @@ endblock %}
   <div class="welcome-banner-illustration">
     <div class="student-photo-bubble" aria-hidden="true">
       <img src="{{ url_for('static', filename='img/dashboard_logo.webp') }}" alt="Dashboard illustration"
-        loading="eager">
+        decoding="async" loading="eager" width="120" height="120">
     </div>
   </div>
 </section>
@@ -77,7 +77,7 @@ endblock %}
 <div class="platforms-grid">
   <a href="{{ platforms.pyqportal }}" target="_blank" rel="noopener" class="platform-card" id="card-pyqportal">
     <div class="platform-card-icon pyq" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/pyq-favicon.ico') }}" alt="" class="platform-card-img">
+      <img src="{{ url_for('static', filename='img/pyq-favicon.ico') }}" alt="" class="platform-card-img" loading="lazy" decoding="async" width="28" height="28">
     </div>
     <div class="platform-card-text">
       <div class="platform-card-name">PYQPortal</div>
@@ -86,7 +86,7 @@ endblock %}
   </a>
   <a href="{{ url_for('pages.go_to_mcq') }}" target="_blank" rel="noopener" class="platform-card" id="card-mcq">
     <div class="platform-card-icon mcq" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/mcq_logo.webp') }}" alt="" class="platform-card-img">
+      <img src="{{ url_for('static', filename='img/mcq_logo.webp') }}" alt="" class="platform-card-img" loading="lazy" decoding="async" width="28" height="28">
     </div>
     <div class="platform-card-text">
       <div class="platform-card-name">MCQ Quiz</div>
@@ -102,7 +102,7 @@ endblock %}
   </a>
   <a href="{{ platforms.topics }}" target="_blank" rel="noopener" class="platform-card" id="card-topics">
     <div class="platform-card-icon topics" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/passavam_logo.webp') }}" alt="" class="platform-card-img">
+      <img src="{{ url_for('static', filename='img/passavam_logo.webp') }}" alt="" class="platform-card-img" loading="lazy" decoding="async" width="28" height="28">
     </div>
     <div class="platform-card-text">
       <div class="platform-card-name">PassAvam</div>
@@ -119,7 +119,7 @@ endblock %}
   <a href="{{ url_for('pages.go_to_doubtundo') }}" target="_blank" rel="noopener" class="platform-card"
     id="card-doubtundo">
     <div class="platform-card-icon doubtundo" aria-hidden="true">
-      <img src="{{ url_for('static', filename='img/logo_doubtndo.webp') }}" alt="" class="platform-card-img">
+      <img src="{{ url_for('static', filename='img/logo_doubtndo.webp') }}" alt="" class="platform-card-img" loading="lazy" decoding="async" width="28" height="28">
     </div>
     <div class="platform-card-text">
       <div class="platform-card-name">Doubtundo</div>

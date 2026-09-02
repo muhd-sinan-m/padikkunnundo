@@ -1,20 +1,3 @@
-"""
-routes/auth.py — Google OAuth 2.0 flow and session management.
-
-Implements Section 5 of the PRD:
-  • Google OAuth only (no email/password).
-  • Domain restriction enforced immediately after the callback,
-    before any user record is created or loaded.
-  • JWT issued on success, stored in an httpOnly cookie.
-  • 30-day session expiry (Section 5.3).
-  • Logout immediately clears the session.
-
-DEV_BYPASS_AUTH mode (config.DEV_BYPASS_AUTH = True):
-  Skips all of the above.  A local dev user is auto-created in the DB on
-  first request and returned directly from get_current_user().
-  Flip DEV_BYPASS_AUTH to False and add real credentials when ready for OAuth.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -22,37 +5,9 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Optional
-
-import jwt
 import re
 
-
-def clean_name(raw_name: str) -> str:
-    """
-    Clean the user's name by removing registration numbers and other non-name patterns.
-
-    Handles patterns like:
-    - "MUHAMMED SINAN. M 24UBC145" -> "MUHAMMED SINAN. M"
-    - "Name 24BCA001" -> "Name"
-    - "Name 24UBC145" -> "Name"
-
-    Registration number patterns typically follow formats like:
-    - 2 digits + 2-4 letters + 2-4 digits (e.g., 24UBC145, 24BCA001)
-    """
-    if not raw_name:
-        return raw_name
-
-    name = raw_name.strip()
-
-    # Pattern to match registration numbers at the end of the name
-    # Matches patterns like: 24UBC145, 24BCA001, 23MCA042, etc.
-    # Format: 2 digits + 2-4 uppercase letters + 2-4 digits
-    regno_pattern = r'\s+\d{2}[A-Z]{2,4}\d{2,4}$'
-
-    # Remove registration number pattern from the end
-    cleaned = re.sub(regno_pattern, '', name)
-
-    return cleaned.strip()
+import jwt
 from authlib.integrations.flask_client import OAuth
 from flask import (
     Blueprint,
@@ -61,21 +16,26 @@ from flask import (
     redirect,
     render_template,
     request,
-    session,
     url_for,
 )
 from flask_limiter import Limiter
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from models import Enrollment, Mark, Subject, User, db
+from models import User, db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
-
 oauth = OAuth()
 
 
+def clean_name(raw_name: str) -> str:
+    if not raw_name:
+        return raw_name
+    name = raw_name.strip()
+    regno_pattern = r'\s+\d{2}[A-Z]{2,4}\d{2,4}$'
+    return re.sub(regno_pattern, '', name).strip()
+
+
 def get_cf_real_ip():
-    from flask import request
     return (
         request.headers.get("CF-Connecting-IP") or
         request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or
@@ -83,34 +43,19 @@ def get_cf_real_ip():
     )
 
 
-# ── Rate limiter instance (initialized in create_app) ─────────────────────────
 limiter = Limiter(
     key_func=get_cf_real_ip,
     default_limits=["100 per hour"],
 )
 
 
-# ── Password strength validation ──────────────────────────────────────────────
-
 def validate_password_strength(password: str) -> tuple[bool, str]:
-    """
-    Validate password strength. Returns (is_valid, error_message).
-    Requirements:
-      - At least 8 characters
-    """
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
     return True, ""
 
 
-# ── Dev user constants ────────────────────────────────────────────────────────
-_DEV_EMAIL = "dev@mariancollege.org"
-_DEV_NAME = "Dev User"
-_DEV_SEMESTER = 4
-
-
 def init_oauth(app) -> None:
-    """Bind authlib OAuth to the Flask app and register the Google provider."""
     oauth.init_app(app)
     oauth.register(
         name="google",
@@ -120,8 +65,6 @@ def init_oauth(app) -> None:
         client_kwargs={"scope": "openid email profile"},
     )
 
-
-# ── JWT helpers ───────────────────────────────────────────────────────────────
 
 def _create_jwt(user_id: int) -> str:
     expiry_days = current_app.config["SESSION_TOKEN_EXPIRY_DAYS"]
@@ -138,7 +81,6 @@ def _create_jwt(user_id: int) -> str:
 
 
 def _decode_jwt(token: str) -> dict | None:
-    """Decode and validate the JWT.  Returns None on any failure."""
     try:
         return jwt.decode(
             token,
@@ -150,7 +92,6 @@ def _decode_jwt(token: str) -> dict | None:
 
 
 def _set_session_cookie(response, user: User):
-    """Attach the session cookie to a redirect response."""
     session_token = _create_jwt(user.id)
     expiry_days = current_app.config["SESSION_TOKEN_EXPIRY_DAYS"]
     response.set_cookie(
@@ -164,28 +105,7 @@ def _set_session_cookie(response, user: User):
     return response
 
 
-# ── SSO JWT helpers (cross-platform, signed with JWT_SECRET) ──────────────
-
 def _create_sso_jwt(user: User) -> str:
-    """
-    Mint a short-lived SSO handoff token for cross-platform authentication.
-
-    This token is signed with JWT_SECRET (NOT SECRET_KEY) so it can be
-    verified by sister platforms that share only JWT_SECRET.
-
-    Claims:
-      sub   — padikkunnundo user.id (string)
-      name  — display name
-      email — college email address
-      college — college name string
-      iss   — "padikkunnundo"  (issuer)
-      aud   — "mcq-quiz"       (intended audience)
-      iat   — issued-at (UTC)
-      exp   — expires in SSO_TOKEN_EXPIRY_SECONDS (default 5 min)
-
-    The short expiry is intentional: the token travels as a URL query
-    parameter and may appear in server / proxy access logs.
-    """
     import time
     expiry_seconds = current_app.config.get("SSO_TOKEN_EXPIRY_SECONDS", 300)
     now_ts = int(time.time())
@@ -208,11 +128,6 @@ def _create_sso_jwt(user: User) -> str:
 
 
 def _decode_sso_jwt(token: str) -> dict | None:
-    """
-    Decode and validate an SSO token issued by padikkunnundo.
-    Validates issuer and audience in addition to signature and expiry.
-    Returns None on any failure.
-    """
     try:
         return jwt.decode(
             token,
@@ -225,54 +140,7 @@ def _decode_sso_jwt(token: str) -> dict | None:
         return None
 
 
-# ── Dev bypass helper ─────────────────────────────────────────────────────────
-
-def _get_or_create_dev_user() -> User:
-    """
-    Return the local dev user, creating it on first call.
-    Pre-onboarded at Semester 3 with all core subjects enrolled.
-    """
-    user = User.query.filter_by(email=_DEV_EMAIL).first()
-    if user:
-        return user
-
-    user = User(
-        email=_DEV_EMAIL,
-        name=_DEV_NAME,
-        semester=_DEV_SEMESTER,
-        course="BCA",
-        college="Marian College Kuttikkanam",
-        is_onboarded=True,
-    )
-    db.session.add(user)
-    db.session.flush()  # get user.id before committing
-
-    # Auto-enroll in all core subjects for Semester 3.
-    core_subjects = Subject.query.filter_by(
-        semester=_DEV_SEMESTER, is_elective=False
-    ).all()
-    for subj in core_subjects:
-        db.session.add(Enrollment(
-            user_id=user.id,
-            subject_id=subj.subject_id,
-            semester=_DEV_SEMESTER,
-        ))
-        db.session.add(Mark(user_id=user.id, subject_id=subj.subject_id))
-
-    db.session.commit()
-    return user
-
-
-# ── Public auth helpers ───────────────────────────────────────────────────────
-
 def get_current_user() -> User | None:
-    """
-    Return the authenticated user for this request.
-
-    If a valid session cookie exists, that user is used.
-    If a session cookie exists but is invalid, do not silently fall back to
-    another account. Only use the dev fallback when there is no session cookie.
-    """
     token = request.cookies.get("session_token")
     if token:
         payload = _decode_jwt(token)
@@ -280,21 +148,10 @@ def get_current_user() -> User | None:
             user = db.session.get(User, int(payload["sub"]))
             if user is not None:
                 return user
-        return None
-
-    if current_app.config.get("DEV_BYPASS_AUTH"):
-        return _get_or_create_dev_user()
-
     return None
 
 
 def login_required(f):
-    """
-    Decorator that ensures the request is authenticated.
-
-    DEV_BYPASS_AUTH = True  → always passes through (no redirect to login).
-    DEV_BYPASS_AUTH = False → redirects to /login (or 401 for JSON requests).
-    """
     @wraps(f)
     def decorated(*args, **kwargs):
         user = get_current_user()
@@ -309,12 +166,10 @@ def login_required(f):
 @auth_bp.route("/register", methods=["POST"])
 @limiter.limit("5 per 15 minutes")
 def register():
-    """Create a new local user account with a stored password hash."""
     name = clean_name(request.form.get("name", "").strip())
     password = request.form.get("password", "")
     email = request.form.get("email", "").strip().lower()
 
-    # Validate required fields
     if not name or not password:
         return render_template(
             "login.html",
@@ -323,7 +178,6 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Validate email (required for password reset functionality)
     if not email:
         return render_template(
             "login.html",
@@ -332,7 +186,6 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Validate email format
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         return render_template(
             "login.html",
@@ -341,26 +194,14 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Validate email domain restriction
-    college_domain = current_app.config["COLLEGE_DOMAIN"]
-    if not email.endswith(f"@{college_domain}"):
-        return render_template(
-            "login.html",
-            error=f"Only accounts with the domain @{college_domain} are permitted to register.",
-            college_name=current_app.config["COLLEGE_NAME"],
-            college_domain=college_domain,
-        ), 400
-
-    # Check for duplicate name
     if User.query.filter(User.name.ilike(name)).first():
         return render_template(
             "login.html",
-            error="That name is already taken. Please choose another.",
+            error="An account with this name already exists.",
             college_name=current_app.config["COLLEGE_NAME"],
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Check for duplicate email
     if User.query.filter_by(email=email).first():
         return render_template(
             "login.html",
@@ -369,7 +210,6 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Validate password strength
     is_valid, error_msg = validate_password_strength(password)
     if not is_valid:
         return render_template(
@@ -385,10 +225,8 @@ def register():
         password_hash=generate_password_hash(password),
     )
     db.session.add(user)
-    db.session.flush()
     db.session.commit()
 
-    # After registration, redirect to login with a success message
     return render_template(
         "login.html",
         success="Registration successful! You can now log in.",
@@ -400,9 +238,6 @@ def register():
 @auth_bp.route("/login", methods=["POST"])
 @limiter.limit("5 per 15 minutes")
 def login():
-    """Authenticate a local user account stored in the database."""
-    # Rate limiting is applied globally via app config
-    # Failed login attempts are limited to 5 per 15 minutes per IP
     name = request.form.get("name", "").strip()
     password = request.form.get("password", "")
 
@@ -429,12 +264,9 @@ def login():
     return _set_session_cookie(response, user)
 
 
-# ── Password Reset Routes ─────────────────────────────────────────────────────
-
 @auth_bp.route("/reset-password", methods=["GET", "POST"])
 @limiter.limit("5 per 15 minutes")
 def reset_password_request():
-    """Display password reset request form and handle submissions."""
     if request.method == "GET":
         return render_template(
             "reset_request.html",
@@ -461,9 +293,7 @@ def reset_password_request():
 
     user = User.query.filter_by(email=email).first()
 
-    # Only proceed if user exists AND has a password (local auth user)
     if not user or not user.password_hash:
-        # Return success message anyway to prevent email enumeration
         return render_template(
             "reset_request.html",
             success="If an account with that email exists, you will receive password reset instructions.",
@@ -471,18 +301,15 @@ def reset_password_request():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         )
 
-    # Generate reset token
     reset_token = secrets.token_urlsafe(32)
     reset_expiry = datetime.now(timezone.utc) + timedelta(
         seconds=current_app.config.get("RESET_TOKEN_EXPIRY_SECONDS", 3600)
     )
 
-    # Store fast deterministic SHA-256 hash (not the raw token) for instant O(1) indexed lookup
     user.reset_token_hash = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
     user.reset_token_expiry = reset_expiry
     db.session.commit()
 
-    # Send reset email using Resend API
     try:
         import resend
 
@@ -509,7 +336,6 @@ def reset_password_request():
         })
     except Exception as e:
         current_app.logger.error(f"Failed to send password reset email: {e}")
-        # Still show success message to avoid revealing email issues
         pass
 
     return render_template(
@@ -523,7 +349,6 @@ def reset_password_request():
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
 @limiter.limit("5 per 15 minutes")
 def reset_password_confirm(token):
-    """Handle password reset with a valid token."""
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
     user = User.query.filter_by(reset_token_hash=token_hash).first()
 
@@ -555,7 +380,6 @@ def reset_password_confirm(token):
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         )
 
-    # POST request - validate and update password
     password = request.form.get("password", "")
     confirm_password = request.form.get("confirm_password", "")
 
@@ -568,7 +392,6 @@ def reset_password_confirm(token):
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Validate password strength
     is_valid, error_msg = validate_password_strength(password)
     if not is_valid:
         return render_template(
@@ -579,7 +402,6 @@ def reset_password_confirm(token):
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
-    # Update password and clear reset token
     user.password_hash = generate_password_hash(password)
     user.reset_token_hash = None
     user.reset_token_expiry = None
@@ -593,24 +415,14 @@ def reset_password_confirm(token):
     )
 
 
-# ── OAuth routes (only active when DEV_BYPASS_AUTH = False) ──────────────────
-
 @auth_bp.route("/google/login")
 def google_login():
-    """Redirect the browser to Google's OAuth consent screen."""
     redirect_uri = url_for("auth.google_callback", _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
 
 @auth_bp.route("/google/callback")
 def google_callback():
-    """
-    Handle the OAuth callback from Google.
-
-    Section 5.2 — Domain restriction:
-      Domain validation happens immediately after the OAuth callback,
-      before any profile is created.
-    """
     try:
         token = oauth.google.authorize_access_token()
     except Exception:
@@ -654,47 +466,22 @@ def google_callback():
 
 @auth_bp.route("/logout")
 def logout():
-    """
-    Section 5.3 — Logout clears the session immediately.
-    In dev mode, just redirects to dashboard (no session to clear).
-    """
     response = redirect(url_for("pages.login"))
     response.delete_cookie("session_token")
     return response
 
 
-# ── SSO Routes ────────────────────────────────────────────────────────────────
-
 @auth_bp.route("/sso/token")
 @login_required
 def sso_token():
-    """
-    SSO handoff endpoint — redirects an authenticated padikkunnundo user to
-    the MCQ quiz site with a short-lived signed JWT.
-
-    Flow:
-      1. User is already logged in to padikkunnundo.app (session cookie valid).
-      2. User clicks a link or is redirected here.
-      3. We mint a 5-minute SSO JWT (signed with JWT_SECRET) and
-         redirect the browser to {MCQ_QUIZ_URL}/sso/login?token=<jwt>.
-      4. The MCQ site validates the token, finds/creates the user, and
-         sets its own session cookie.
-
-    Optional query param:
-      ?next=<path>  — forwarded to the MCQ site so it can redirect the user
-                       to a specific page after login (e.g. a quiz URL).
-    """
     user = get_current_user()
-
-    # Build the SSO token
     sso_jwt = _create_sso_jwt(user)
 
-    # Forward an optional deep-link path to the MCQ site (validated to prevent open redirects)
     next_path = request.args.get("next", "")
     if next_path and (not next_path.startswith("/") or next_path.startswith("//") or "://" in next_path):
         next_path = ""
 
-    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/").rstrip("/")
+    quiz_url = current_app.config.get("MCQ_QUIZ_URL", "").rstrip("/")
     target = f"{quiz_url}/sso/login?token={sso_jwt}"
     if next_path:
         from urllib.parse import quote
@@ -705,28 +492,6 @@ def sso_token():
 
 @auth_bp.route("/sso/verify", methods=["POST"])
 def sso_verify():
-    """
-    Server-to-server SSO token verification endpoint (JSON).
-
-    The MCQ site's backend can POST a token here to validate it without
-    having to implement the full JWT verification itself (though sharing
-    JWT_SECRET and verifying locally is the preferred, lower-latency approach).
-
-    Request body (JSON):
-      { "token": "<sso_jwt>" }
-
-    Response (200 on success):
-      {
-        "valid": true,
-        "sub": "42",
-        "name": "MUHAMMED SINAN. M",
-        "email": "sinan@mariancollege.org",
-        "college": "Marian College Kuttikkanam"
-      }
-
-    Response (401 on failure):
-      { "valid": false, "error": "Token expired / invalid / missing" }
-    """
     data = request.get_json(silent=True) or {}
     token = data.get("token", "").strip()
 
@@ -746,28 +511,9 @@ def sso_verify():
     }), 200
 
 
-# ── markkundo SSO redirect ─────────────────────────────────────────────────────
-
 @auth_bp.route("/markkundo-sso")
 @login_required
 def markkundo_sso():
-    """
-    Redirect the currently-logged-in padikkunundo student to markkundo
-    with a short-lived JWT so they are auto-logged in there.
-
-    Flow:
-      1. Student is authenticated in padikkunundo (session cookie present).
-      2. GET /auth/markkundo-sso  ← triggered by "Analyse in markkundo" button.
-      3. We mint a 5-minute JWT signed with SSO_SECRET (shared with markkundo).
-      4. Redirect to: <MARKKUNDO_URL>/auth/sso?token=<JWT>
-      5. markkundo validates the token → logs the student in → shows dashboard.
-
-    Security notes:
-      • Token travels only in a URL query parameter (HTTPS in production).
-      • 5-minute expiry limits the window for replay attacks.
-      • Signed with SSO_SECRET (NOT the session SECRET_KEY) so markkundo
-        can verify it without knowing padikkunundo's session secret.
-    """
     user: User = get_current_user()
     if user is None:
         return redirect(url_for("pages.login"))
@@ -777,12 +523,11 @@ def markkundo_sso():
     expiry_seconds = current_app.config.get("MARKKUNDO_SSO_EXPIRY_SECONDS", 300)
 
     if not sso_secret:
-        current_app.logger.error("SSO_SECRET not configured — cannot issue markkundo SSO token")
         return "SSO is not configured on this server.", 503
 
     now = datetime.now(timezone.utc)
     payload = {
-        "sub": user.email,         # markkundo looks up student by email
+        "sub": user.email,
         "iss": "padikkunundo",
         "aud": "markkundo",
         "name": user.name or "",
@@ -796,5 +541,4 @@ def markkundo_sso():
     )
 
     sso_url = f"{markkundo_url}/auth/sso?token={token}"
-    current_app.logger.info(f"markkundo SSO redirect for {user.email}")
     return redirect(sso_url)

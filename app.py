@@ -1,21 +1,8 @@
-"""
-app.py — Flask application factory.
-
-Usage:
-    # Development
-    python app.py
-
-    # Or with flask CLI
-    flask run --debug
-
-One-time setup:
-    python seed.py     ← populates the subjects table
-"""
 from dotenv import load_dotenv
 load_dotenv()
 import os
 
-from flask import Flask
+from flask import Flask, request, jsonify, render_template
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from sqlalchemy import inspect
 
@@ -28,73 +15,55 @@ from routes.admin import admin_bp
 from routes.auth import init_oauth, limiter
 
 
-
 def create_app(config_class=Config) -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(config_class)
 
-    # ── Extensions ────────────────────────────────────────────────────────────
+    if not app.debug:
+        app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000
+
     db.init_app(app)
     init_oauth(app)
     csrf.init_app(app)
 
-    # Map custom config key to Flask-Limiter's standard config key
     app.config["RATELIMIT_STORAGE_URI"] = app.config["RATELIMIT_STORAGE_URL"]
     limiter.init_app(app)
 
-    # Apply rate limiting to login route (after blueprint registration)
-    # Rate limiting is applied via the @limiter.limit decorator in the route itself
-
-    # ── Blueprints ────────────────────────────────────────────────────────────
     app.register_blueprint(pages_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(admin_bp)
 
-    # ── CSRF exemptions ───────────────────────────────────────────────────────
-    # JSON API endpoints don't use cookie/form sessions — exempt the whole blueprint
     csrf.exempt(api_bp)
-    # Google OAuth callback is a redirect from Google, not a form POST
     csrf.exempt("auth.google_callback")
-    # Login and register are already protected by rate limiting + domain check +
-    # bcrypt — CSRF here would break direct POSTs from non-browser clients.
     csrf.exempt("auth.login")
     csrf.exempt("auth.register")
-    # SSO verify is a server-to-server JSON POST from the MCQ backend.
-    # It carries no session cookie and is authenticated via the shared JWT_SECRET.
     csrf.exempt("auth.sso_verify")
-    # markkundo SSO is a GET redirect — no form submission involved.
     csrf.exempt("auth.markkundo_sso")
 
-    # ── Error handlers ────────────────────────────────────────────────────────
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
-        from flask import jsonify, request
         if request.accept_mimetypes.accept_json:
             return jsonify({"error": "CSRF token missing or invalid."}), 400
         return "CSRF token missing or invalid.", 400
 
     @app.errorhandler(403)
     def forbidden(e):
-        from flask import jsonify, request
         if request.accept_mimetypes.accept_json:
             return jsonify({"error": "Access denied."}), 403
         return "Access denied.", 403
 
     @app.errorhandler(404)
     def not_found(e):
-        from flask import jsonify, render_template, request
         if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
             return jsonify({"error": "Not found."}), 404
         return render_template("404.html"), 404
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        from flask import jsonify, render_template, request
         if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
             return jsonify({"error": "Internal server error."}), 500
         return render_template("500.html"), 500
-
 
     @app.after_request
     def add_security_headers(response):
@@ -108,8 +77,13 @@ def create_app(config_class=Config) -> Flask:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        if not app.debug:
+
+        if request.path.startswith("/static/"):
+            if not app.debug:
+                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif not app.debug:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
         return response
 
     @app.template_filter("format_desktop_name")
@@ -136,12 +110,10 @@ def create_app(config_class=Config) -> Flask:
         return cleaned_name
 
     def ensure_schema() -> None:
-        """Create missing tables/indexes when a database is fresh and sync sequence counters on PostgreSQL."""
         inspector = inspect(db.engine)
         if "users" not in inspector.get_table_names():
             db.create_all()
 
-        # Ensure performance indexes exist
         index_statements = [
             "CREATE INDEX IF NOT EXISTS ix_enrollments_user_semester ON enrollments (user_id, semester);",
             "CREATE INDEX IF NOT EXISTS ix_subjects_sem_elective ON subjects (semester, is_elective, is_active);",
@@ -174,14 +146,11 @@ def create_app(config_class=Config) -> Flask:
                 except Exception:
                     db.session.rollback()
 
-    # ── Create tables on first run ────────────────────────────────────────────
     with app.app_context():
         ensure_schema()
 
-
     @app.cli.command("init-db")
     def init_db_command():
-        """Create database tables for the configured database."""
         db.create_all()
         print("Database tables created.")
 
