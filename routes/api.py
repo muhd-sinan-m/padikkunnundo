@@ -52,10 +52,12 @@ def me():
     return jsonify({
         **user.to_dict(),
         "platforms": {
-            "pyqportal": current_app.config["PYQPORTAL_URL"],
-            "mcq_quiz":  current_app.config["MCQ_QUIZ_URL"],
-            "placement": current_app.config["PLACEMENT_URL"],
-            "topics":    current_app.config["TOPIC_URL"],
+            "pyqportal":     current_app.config["PYQPORTAL_URL"],
+            "mcq_quiz":      current_app.config["MCQ_QUIZ_URL"],
+            "lab_practice":  current_app.config["LAB_PRACTICE_URL"],
+            "passavam":      current_app.config["PASSAVAM_URL"],
+            "mark_analyser": current_app.config["MARK_ANALYSER_URL"],
+            "doubtundo":     current_app.config["DOUBTUNDO_URL"],
         },
     })
 

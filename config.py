@@ -43,12 +43,12 @@ class Config:
     MAIL_FROM: str = os.environ.get("MAIL_FROM", "noreply@padikkunnundo.app")
     RESET_TOKEN_EXPIRY_SECONDS: int = int(os.environ.get("RESET_TOKEN_EXPIRY_SECONDS", "3600"))
 
-    PYQPORTAL_URL: str = os.environ.get("PYQPORTAL_URL", "https://pyqportal.app")
-    MCQ_QUIZ_URL: str = os.environ.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/")
-    PLACEMENT_URL: str = os.environ.get("PLACEMENT_URL", "https://lab.pyqportal.app")
-    TOPIC_URL: str = os.environ.get("TOPIC_URL", "https://passavam.onrender.com")
-    MARK_ANALYSER_URL: str = os.environ.get("MARKKUNDO_URL", "https://markkundo.app")
-    DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "https://doubtundo.onrender.com/")
+    PYQPORTAL_URL: str = os.environ.get("PYQPORTAL_URL", "")
+    MCQ_QUIZ_URL: str = os.environ.get("MCQ_QUIZ_URL", "")
+    LAB_PRACTICE_URL: str = os.environ.get("LAB_PRACTICE_URL", "")
+    PASSAVAM_URL: str = os.environ.get("PASSAVAM_URL", "")
+    MARK_ANALYSER_URL: str = os.environ.get("MARK_ANALYSER_URL", "")
+    DOUBTUNDO_URL: str = os.environ.get("DOUBTUNDO_URL", "")
 
     SSO_SECRET: str = os.environ.get("SSO_SECRET", "")
     MARKKUNDO_SSO_EXPIRY_SECONDS: int = 300

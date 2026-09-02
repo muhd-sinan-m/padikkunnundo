@@ -109,6 +109,19 @@ def create_app(config_class=Config) -> Flask:
                 return Markup(f'{escape(first_part)}<br class="desktop-only-br"> {escape(last_part)}')
         return cleaned_name
 
+    @app.context_processor
+    def inject_platforms():
+        return {
+            "platforms": {
+                "pyqportal": app.config.get("PYQPORTAL_URL", ""),
+                "mcq_quiz": app.config.get("MCQ_QUIZ_URL", ""),
+                "lab_practice": app.config.get("LAB_PRACTICE_URL", ""),
+                "passavam": app.config.get("PASSAVAM_URL", ""),
+                "mark_analyser": app.config.get("MARK_ANALYSER_URL", ""),
+                "doubtundo": app.config.get("DOUBTUNDO_URL", ""),
+            }
+        }
+
     def ensure_schema() -> None:
         inspector = inspect(db.engine)
         if "users" not in inspector.get_table_names():
