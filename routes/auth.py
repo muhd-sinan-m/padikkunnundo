@@ -17,6 +17,7 @@ DEV_BYPASS_AUTH mode (config.DEV_BYPASS_AUTH = True):
 
 from __future__ import annotations
 
+import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -431,6 +432,7 @@ def login():
 # ── Password Reset Routes ─────────────────────────────────────────────────────
 
 @auth_bp.route("/reset-password", methods=["GET", "POST"])
+@limiter.limit("5 per 15 minutes")
 def reset_password_request():
     """Display password reset request form and handle submissions."""
     if request.method == "GET":
@@ -475,8 +477,8 @@ def reset_password_request():
         seconds=current_app.config.get("RESET_TOKEN_EXPIRY_SECONDS", 3600)
     )
 
-    # Store token hash (not the raw token) for security
-    user.reset_token_hash = generate_password_hash(reset_token)
+    # Store fast deterministic SHA-256 hash (not the raw token) for instant O(1) indexed lookup
+    user.reset_token_hash = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
     user.reset_token_expiry = reset_expiry
     db.session.commit()
 
@@ -519,15 +521,23 @@ def reset_password_request():
 
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+@limiter.limit("5 per 15 minutes")
 def reset_password_confirm(token):
     """Handle password reset with a valid token."""
-    # Find user with matching token
-    user = None
-    for u in User.query.filter(User.reset_token_hash.isnot(None)).all():
-        if check_password_hash(u.reset_token_hash, token):
-            if u.reset_token_expiry and u.reset_token_expiry > datetime.utcnow():
-                user = u
-                break
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    user = User.query.filter_by(reset_token_hash=token_hash).first()
+
+    now_utc = datetime.now(timezone.utc)
+    if user and user.reset_token_expiry:
+        expiry = user.reset_token_expiry
+        if expiry.tzinfo is None:
+            is_valid = expiry > datetime.utcnow()
+        else:
+            is_valid = expiry > now_utc
+        if not is_valid:
+            user = None
+    else:
+        user = None
 
     if not user:
         return render_template(
@@ -679,8 +689,10 @@ def sso_token():
     # Build the SSO token
     sso_jwt = _create_sso_jwt(user)
 
-    # Forward an optional deep-link path to the MCQ site
+    # Forward an optional deep-link path to the MCQ site (validated to prevent open redirects)
     next_path = request.args.get("next", "")
+    if next_path and (not next_path.startswith("/") or next_path.startswith("//") or "://" in next_path):
+        next_path = ""
 
     quiz_url = current_app.config.get("MCQ_QUIZ_URL", "https://mcq-portal-ldf6.onrender.com/").rstrip("/")
     target = f"{quiz_url}/sso/login?token={sso_jwt}"

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from functools import wraps
 from typing import Any
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for, current_app
+from sqlalchemy import func, case
+from sqlalchemy.orm import joinedload
 
 from models import Announcement, Enrollment, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
@@ -36,31 +39,63 @@ def _mark_components_max(structure: dict[str, float]) -> float:
     return float(structure["isa"] + structure["cp"] + structure["lb"] + structure["ld"] + structure["sea1"])
 
 
-def _compute_class_average_percent(subject: Subject) -> float | None:
+def _compute_subject_averages_bulk(subjects: list[Subject]) -> dict[int, float | None]:
     """
-    Average mark across all students for a subject.
-    Returns None if there are no mark rows for the subject at all.
+    Compute the class average mark % for ALL subjects in a single SQL query.
+    Returns a dict mapping subject_id -> avg_percent (or None if no marks exist).
+
+    Optimization: replaces the old N+1 pattern where _compute_class_average_percent
+    fired one Mark query per subject (55+ queries → 1 query).
     """
-    structure = get_mark_structure(int(subject.credit))
-    max_total = _mark_components_max(structure)
+    if not subjects:
+        return {}
 
-    marks = Mark.query.filter_by(subject_id=subject.subject_id).all()
-    if not marks:
-        return None
+    # Single aggregation query: sum each component and count rows, grouped by subject
+    rows = (
+        db.session.query(
+            Mark.subject_id,
+            func.count(Mark.id).label("row_count"),
+            func.sum(
+                func.coalesce(Mark.isa, 0.0)
+                + func.coalesce(Mark.cp, 0.0)
+                + func.coalesce(Mark.lb, 0.0)
+                + func.coalesce(Mark.ld, 0.0)
+                + func.coalesce(Mark.sea1, 0.0)
+            ).label("total_marks"),
+        )
+        .group_by(Mark.subject_id)
+        .all()
+    )
 
-    def entered_total(m: Mark) -> float:
-        # Treat NULL as 0 (i.e., not entered).
-        isa = float(m.isa or 0)
-        cp = float(m.cp or 0)
-        lb = float(m.lb or 0)
-        ld = float(m.ld or 0)
-        sea1 = float(m.sea1 or 0)
-        return isa + cp + lb + ld + sea1
+    # Build a lookup: subject_id -> (row_count, total_marks)
+    stats: dict[int, tuple[int, float]] = {
+        r.subject_id: (int(r.row_count), float(r.total_marks or 0.0))
+        for r in rows
+    }
 
-    avg_entered = sum(entered_total(m) for m in marks) / len(marks)
-    if max_total <= 0:
-        return 0.0
-    return (avg_entered / max_total) * 100.0
+    # Build credit → max_total cache so we don't recompute per subject
+    _credit_max_cache: dict[float, float] = {}
+
+    result: dict[int, float | None] = {}
+    for s in subjects:
+        credit = float(s.credit)
+        if credit not in _credit_max_cache:
+            structure = get_mark_structure(int(credit))
+            _credit_max_cache[credit] = _mark_components_max(structure)
+        max_total = _credit_max_cache[credit]
+
+        if s.subject_id not in stats:
+            result[s.subject_id] = None  # No marks entered yet
+            continue
+
+        row_count, total_marks = stats[s.subject_id]
+        if row_count == 0 or max_total <= 0:
+            result[s.subject_id] = 0.0
+        else:
+            avg_entered = total_marks / row_count
+            result[s.subject_id] = (avg_entered / max_total) * 100.0
+
+    return result
 
 
 @admin_bp.route("")
@@ -69,8 +104,10 @@ def _compute_class_average_percent(subject: Subject) -> float | None:
 def admin_dashboard():
     current_user = get_current_user()
 
+    # ── Query 1: total user count ─────────────────────────────────────────────
     total_users = User.query.count()
 
+    # ── Query 2: users per semester (aggregated in SQL) ───────────────────────
     users_per_semester = (
         db.session.query(User.semester, db.func.count(User.id))
         .filter(User.semester.isnot(None))
@@ -80,29 +117,40 @@ def admin_dashboard():
     )
     users_per_semester_dict = {int(sem): int(cnt) for sem, cnt in users_per_semester}
 
-    # Marks entered vs zero marks:
-    # Count marks rows where at least one component is not NULL.
-    marks_rows = Mark.query.all()
-    total_mark_rows = len(marks_rows)
-    marks_entered_rows = sum(
-        1
-        for m in marks_rows
-        if any(v is not None for v in (m.isa, m.cp, m.lb, m.ld, m.sea1))
-    )
+    # ── Query 3: marks entered stats — fully aggregated in SQL ────────────────
+    # Replaces: Mark.query.all() full scan + Python-side loop (was O(N) rows in memory)
+    marks_stats = db.session.query(
+        func.count(Mark.id).label("total"),
+        func.sum(
+            case(
+                (
+                    (
+                        Mark.isa.isnot(None)
+                        | Mark.cp.isnot(None)
+                        | Mark.lb.isnot(None)
+                        | Mark.ld.isnot(None)
+                        | Mark.sea1.isnot(None)
+                    ),
+                    1,
+                ),
+                else_=0,
+            )
+        ).label("entered"),
+    ).one()
 
-    # Translate “marks entered %” into “entered mark rows / total mark rows”.
+    total_mark_rows = int(marks_stats.total or 0)
+    marks_entered_rows = int(marks_stats.entered or 0)
     marks_entered_pct = (marks_entered_rows / total_mark_rows * 100.0) if total_mark_rows else 0.0
 
-    # Average mark per subject (% of max)
-    subjects = Subject.query.all()
+    # ── Query 4: subject averages — single GROUP BY (was N+1: 1 query per subject)
+    subjects = Subject.query.order_by(Subject.semester.asc(), Subject.subject_name.asc()).all()
+    subject_avg_map = _compute_subject_averages_bulk(subjects)
+
     subject_avg = []
-    low_performing_subject_ids = set()
     for s in subjects:
-        avg_pct = _compute_class_average_percent(s)
+        avg_pct = subject_avg_map.get(s.subject_id)
         avg_pct_val = avg_pct if avg_pct is not None else 0.0
         low = avg_pct is not None and avg_pct < 50.0
-        if low:
-            low_performing_subject_ids.add(s.subject_id)
         subject_avg.append(
             {
                 "subject_id": s.subject_id,
@@ -113,11 +161,13 @@ def admin_dashboard():
             }
         )
 
-    low_performing_subjects = [
-        x for x in subject_avg if x["is_low_performing"]
-    ]
+    low_performing_subjects = [x for x in subject_avg if x["is_low_performing"]]
 
-    # Users per day (last 14 days)
+    # ── Query 5: users per day (last 14 days, aggregated in SQL) ─────────────
+    from datetime import date, timedelta
+    today = date.today()
+    start_day = today - timedelta(days=13)
+
     users_per_date_rows = (
         db.session.query(
             db.func.date(User.created_at).label("date"),
@@ -128,12 +178,6 @@ def admin_dashboard():
         .order_by(db.func.date(User.created_at).asc())
         .all()
     )
-
-    # Ensure we return the last 14 days in chronological order.
-    # If there are missing days, they will be represented with 0 counts.
-    from datetime import date, timedelta
-    today = date.today()
-    start_day = today - timedelta(days=13)
 
     counts_map = {row.date.isoformat(): int(row.count) for row in users_per_date_rows}
     users_per_date = [
@@ -158,40 +202,39 @@ def admin_dashboard():
     )
 
 
-def _get_user_elective_names(user: User) -> str:
+def _get_elective_names_bulk(users: list[User]) -> dict[int, str]:
     """
-    Return a human-readable string of the student's current elective(s).
-    Looks up the elective group based on semester.
+    Batch-load elective names for a list of users in a single query.
+    Returns a dict mapping user_id -> comma-separated elective name string.
+
+    Optimization: replaces the old per-user _get_user_elective_names() N+1 pattern
+    (was 1 Enrollment JOIN query per user → now 1 query total for all users).
     """
-    if not user.semester:
-        return "—"
+    if not users:
+        return {}
 
-    sem = int(user.semester)
-    if sem in (1, 2):
-        group = "lang_1_2"
-    elif sem in (3, 4):
-        group = "spec_3_4"
-    elif sem == 5:
-        group = "pe_5"
-    else:
-        group = None
+    user_ids = [u.id for u in users]
 
-    if not group:
-        return "—"
-
-    # Get elective enrollments for this user in the current semester
-    elective_enrollments = (
+    # Single query: fetch all elective enrollments for all users at once
+    enrs = (
         Enrollment.query
-        .filter_by(user_id=user.id, semester=sem)
+        .filter(Enrollment.user_id.in_(user_ids))
         .join(Subject)
-        .filter(Subject.is_elective == True, Subject.elective_group == group)
+        .filter(Subject.is_elective == True)
+        .options(joinedload(Enrollment.subject))
         .all()
     )
 
-    if not elective_enrollments:
-        return "—"
+    # Group subject names by user_id in Python (O(E) where E = elective enrollments)
+    elective_map: dict[int, list[str]] = defaultdict(list)
+    for enr in enrs:
+        elective_map[enr.user_id].append(enr.subject.subject_name)
 
-    return ", ".join(e.subject.subject_name for e in elective_enrollments)
+    # Build result — users with no electives get "—"
+    return {
+        u.id: (", ".join(elective_map[u.id]) if elective_map[u.id] else "—")
+        for u in users
+    }
 
 
 @admin_bp.route("/users")
@@ -208,6 +251,9 @@ def admin_users_list():
 
     users = query.order_by(User.created_at.desc()).all()
 
+    # Batch-load all elective names in a single query instead of N+1
+    elective_names = _get_elective_names_bulk(users)
+
     def login_method(u: User) -> str:
         # Heuristic: local accounts have password_hash; OAuth users generally have no password_hash.
         return "local" if u.password_hash else "google"
@@ -221,7 +267,7 @@ def admin_users_list():
                 "name": u.name,
                 "email": u.email,
                 "semester": u.semester,
-                "elective": _get_user_elective_names(u),
+                "elective": elective_names.get(u.id, "—"),
                 "login_method": login_method(u),
                 "created_at": u.created_at,
             }
@@ -486,7 +532,7 @@ def admin_user_electives(user_id: int):
             .all()
         )
 
-    # Current elective enrollments for this student
+    # Current elective enrollments for this student — joinedload avoids lazy N+1
     current_elective_enrollments: list[Enrollment] = []
     if elective_group and sem:
         current_elective_enrollments = (
@@ -494,6 +540,7 @@ def admin_user_electives(user_id: int):
             .filter_by(user_id=user.id, semester=sem)
             .join(Subject)
             .filter(Subject.is_elective == True, Subject.elective_group == elective_group)
+            .options(joinedload(Enrollment.subject))
             .all()
         )
 
@@ -636,11 +683,18 @@ def _do_rollover_user(user: User) -> None:
     core_subjects = Subject.query.filter_by(
         semester=new_sem, is_elective=False, is_active=True
     ).all()
+
+    # Batch-load existing enrollment subject_ids to avoid N+1 existence checks
+    # (was: 1 query per core subject inside the loop)
+    existing_subject_ids: set[int] = {
+        row[0]
+        for row in db.session.query(Enrollment.subject_id)
+        .filter_by(user_id=user.id)
+        .all()
+    }
+
     for subj in core_subjects:
-        existing = Enrollment.query.filter_by(
-            user_id=user.id, subject_id=subj.subject_id
-        ).first()
-        if not existing:
+        if subj.subject_id not in existing_subject_ids:
             db.session.add(Enrollment(
                 user_id=user.id,
                 subject_id=subj.subject_id,
@@ -697,11 +751,7 @@ def _do_rollover_user(user: User) -> None:
                 if matched:
                     target_subj_id = matched.subject_id
 
-            exists = Enrollment.query.filter_by(
-                user_id=user.id,
-                subject_id=target_subj_id,
-                semester=new_sem,
-            ).first()
+            exists = target_subj_id in existing_subject_ids
             if not exists:
                 db.session.add(Enrollment(
                     user_id=user.id,
@@ -709,6 +759,7 @@ def _do_rollover_user(user: User) -> None:
                     semester=new_sem,
                 ))
                 db.session.add(Mark(user_id=user.id, subject_id=target_subj_id))
+                existing_subject_ids.add(target_subj_id)  # keep set in sync
         user.is_onboarded = True
 
 

@@ -53,3 +53,4 @@ htmlcov/
 check_schema.py
 fix_blanks.py
 gen_about.py
+scratch/

@@ -33,19 +33,19 @@ class User(db.Model):
     name = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=True)
     # Set during onboarding; nullable until the student completes setup.
-    semester = db.Column(db.Integer, nullable=True)
+    semester = db.Column(db.Integer, nullable=True, index=True)
     course = db.Column(db.String(100), nullable=True)
     # Derived from email domain (e.g. "Marian College Kuttikkanam").
     college = db.Column(db.String(255), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     # Becomes True after the student completes the onboarding flow.
     is_onboarded = db.Column(db.Boolean, default=False, nullable=False)
 
     # Admin flag used by admin panel access control.
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
-    # Password reset token (hashed) and expiry
-    reset_token_hash = db.Column(db.String(255), nullable=True)
+    # Password reset token (hashed with sha256) and expiry
+    reset_token_hash = db.Column(db.String(255), nullable=True, index=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
     enrollments = db.relationship("Enrollment", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
@@ -75,7 +75,7 @@ class Subject(db.Model):
 
     subject_id = db.Column(db.Integer, primary_key=True)
     subject_name = db.Column(db.String(255), nullable=False)
-    semester = db.Column(db.Integer, nullable=False)
+    semester = db.Column(db.Integer, nullable=False, index=True)
 
     # Stored as Float to accommodate 3-credit subjects (7.5 per component).
     credit = db.Column(db.Float, nullable=False)
@@ -91,6 +91,10 @@ class Subject(db.Model):
 
     enrollments = db.relationship("Enrollment", back_populates="subject")
     marks = db.relationship("Mark", back_populates="subject")
+
+    __table_args__ = (
+        db.Index("ix_subjects_sem_elective", "semester", "is_elective", "is_active"),
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -112,7 +116,7 @@ class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     creator = db.relationship("User", backref="announcements")
@@ -147,6 +151,7 @@ class Enrollment(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "subject_id", name="uq_enrollment"),
+        db.Index("ix_enrollments_user_semester", "user_id", "semester"),
     )
 
 

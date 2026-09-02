@@ -108,6 +108,8 @@ def create_app(config_class=Config) -> Flask:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        if not app.debug:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
     @app.template_filter("format_desktop_name")
@@ -129,15 +131,32 @@ def create_app(config_class=Config) -> Flask:
             if len(parts) > 1:
                 first_part = " ".join(parts[:-1])
                 last_part = parts[-1]
-                from markupsafe import Markup
-                return Markup(f'{first_part}<br class="desktop-only-br"> {last_part}')
+                from markupsafe import Markup, escape
+                return Markup(f'{escape(first_part)}<br class="desktop-only-br"> {escape(last_part)}')
         return cleaned_name
 
     def ensure_schema() -> None:
-        """Create missing tables when a database is fresh and sync sequence counters on PostgreSQL."""
+        """Create missing tables/indexes when a database is fresh and sync sequence counters on PostgreSQL."""
         inspector = inspect(db.engine)
         if "users" not in inspector.get_table_names():
             db.create_all()
+
+        # Ensure performance indexes exist
+        index_statements = [
+            "CREATE INDEX IF NOT EXISTS ix_enrollments_user_semester ON enrollments (user_id, semester);",
+            "CREATE INDEX IF NOT EXISTS ix_subjects_sem_elective ON subjects (semester, is_elective, is_active);",
+            "CREATE INDEX IF NOT EXISTS ix_subjects_semester ON subjects (semester);",
+            "CREATE INDEX IF NOT EXISTS ix_announcements_created_at ON announcements (created_at);",
+            "CREATE INDEX IF NOT EXISTS ix_users_semester ON users (semester);",
+            "CREATE INDEX IF NOT EXISTS ix_users_created_at ON users (created_at);",
+            "CREATE INDEX IF NOT EXISTS ix_users_reset_token_hash ON users (reset_token_hash);",
+        ]
+        for stmt in index_statements:
+            try:
+                db.session.execute(db.text(stmt))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
         if db.engine.dialect.name == "postgresql":
             for table, pk in [

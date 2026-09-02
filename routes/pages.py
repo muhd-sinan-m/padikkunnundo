@@ -169,6 +169,9 @@ def go_to_mcq():
     target = f"{quiz_url}/sso/login?token={token}"
 
     next_path = flask_request.args.get("next", "")
+    if next_path and (not next_path.startswith("/") or next_path.startswith("//") or "://" in next_path):
+        next_path = ""
+
     if next_path:
         target += f"&next={quote(next_path, safe='')}"
 

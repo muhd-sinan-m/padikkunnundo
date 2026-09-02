@@ -20,6 +20,7 @@ Endpoints
 from __future__ import annotations
 
 from flask import Blueprint, current_app, jsonify, request
+from sqlalchemy.orm import joinedload
 
 from grading import (
     compute_focus_priority,
@@ -100,11 +101,15 @@ def enroll():
         semester=semester, is_elective=False
     ).all()
 
+    existing_subject_ids = {
+        row[0]
+        for row in db.session.query(Enrollment.subject_id)
+        .filter_by(user_id=user.id)
+        .all()
+    }
+
     for subject in core_subjects:
-        existing = Enrollment.query.filter_by(
-            user_id=user.id, subject_id=subject.subject_id
-        ).first()
-        if not existing:
+        if subject.subject_id not in existing_subject_ids:
             db.session.add(Enrollment(
                 user_id=user.id,
                 subject_id=subject.subject_id,
@@ -112,6 +117,7 @@ def enroll():
             ))
             # Create a blank marks row so we always have one per enrollment.
             db.session.add(Mark(user_id=user.id, subject_id=subject.subject_id))
+            existing_subject_ids.add(subject.subject_id)
 
     # ── Enroll in the chosen elective(s) ─────────────────────────────────────────
     # Sems 5 and 6 both use the pe_5 group (3 professional electives).
@@ -136,32 +142,28 @@ def enroll():
 
         # Enroll in each of the 3 electives
         for elective in subjects:
-            existing = Enrollment.query.filter_by(
-                user_id=user.id, subject_id=elective.subject_id
-            ).first()
-            if not existing:
+            if elective.subject_id not in existing_subject_ids:
                 db.session.add(Enrollment(
                     user_id=user.id,
                     subject_id=elective.subject_id,
                     semester=semester,
                 ))
                 db.session.add(Mark(user_id=user.id, subject_id=elective.subject_id))
+                existing_subject_ids.add(elective.subject_id)
 
     else:
         # Existing Sem 1-4 flow (unchanged): single elective enrollment
         if elective_subject_id:
             elective = db.session.get(Subject, elective_subject_id)
             if elective and elective.is_elective:
-                existing = Enrollment.query.filter_by(
-                    user_id=user.id, subject_id=elective.subject_id
-                ).first()
-                if not existing:
+                if elective.subject_id not in existing_subject_ids:
                     db.session.add(Enrollment(
                         user_id=user.id,
                         subject_id=elective.subject_id,
                         semester=semester,
                     ))
                     db.session.add(Mark(user_id=user.id, subject_id=elective.subject_id))
+                    existing_subject_ids.add(elective.subject_id)
 
     db.session.commit()
     return jsonify({"ok": True, "semester": semester})
@@ -198,7 +200,7 @@ def subjects():
     enrollments = (
         Enrollment.query
         .filter_by(user_id=user.id, semester=user.semester)
-        .join(Subject)
+        .options(joinedload(Enrollment.subject))
         .all()
     )
 
@@ -390,7 +392,7 @@ def focus():
     enrollments = (
         Enrollment.query
         .filter_by(user_id=user.id, semester=user.semester)
-        .join(Subject)
+        .options(joinedload(Enrollment.subject))
         .all()
     )
 
