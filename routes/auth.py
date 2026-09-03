@@ -418,7 +418,9 @@ def reset_password_confirm(token):
 @auth_bp.route("/google/login")
 def google_login():
     redirect_uri = url_for("auth.google_callback", _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
+    college_domain = current_app.config.get("COLLEGE_DOMAIN")
+    extra_params = {"hd": college_domain} if college_domain else {}
+    return oauth.google.authorize_redirect(redirect_uri, **extra_params)
 
 
 @auth_bp.route("/google/callback")
