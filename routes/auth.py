@@ -238,7 +238,7 @@ def register():
 
 
 @auth_bp.route("/login", methods=["POST"])
-@limiter.limit("5 per 15 minutes")
+@limiter.limit("20 per minute", deduct_when=lambda res: res.status_code == 401)
 def login():
     name = request.form.get("name", "").strip()
     password = request.form.get("password", "")
@@ -426,6 +426,7 @@ def reset_password_confirm(token):
 
 
 @auth_bp.route("/google/login")
+@limiter.exempt
 def google_login():
     redirect_uri = url_for("auth.google_callback", _external=True)
     college_domain = current_app.config.get("COLLEGE_DOMAIN")
@@ -434,6 +435,7 @@ def google_login():
 
 
 @auth_bp.route("/google/callback")
+@limiter.exempt
 def google_callback():
     try:
         token = oauth.google.authorize_access_token()
