@@ -356,6 +356,81 @@
       background: #f1f5f9;
       margin: 4px 0;
     }
+
+    /* ── Subjects Section Redesign ── */
+    .sem-filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sem-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .sem-tab-btn:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .sem-tab-btn.active {
+      background: #4f46e5;
+      color: #fff;
+      border-color: #4f46e5;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .sem-tab-btn .tab-count {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .sem-tab-btn.active .tab-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    .subject-type-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .subject-type-pill.core {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .subject-type-pill.elective {
+      background: #fdf4ff;
+      color: #a21caf;
+      border: 1px solid #f5d0fe;
+    }
+    .credit-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      background: #f8fafc;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
   </style>
 </head>
 
@@ -634,19 +709,14 @@
                 <tr class="{% if u.is_blocked %}user-row-blocked{% endif %}">
                   <!-- User Identity -->
                   <td>
-                    <div class="user-identity-cell">
-                      <div class="user-avatar-badge {% if u.is_blocked %}blocked{% endif %}">
-                        {{ (u.name or 'U')[0]|upper }}
+                    <div class="user-meta-info">
+                      <div class="user-meta-name">
+                        <span>{{ u.name }}</span>
+                        {% if u.is_admin %}
+                        <span class="admin-pill-tag">Admin</span>
+                        {% endif %}
                       </div>
-                      <div class="user-meta-info">
-                        <div class="user-meta-name">
-                          <span>{{ u.name }}</span>
-                          {% if u.is_admin %}
-                          <span class="admin-pill-tag">Admin</span>
-                          {% endif %}
-                        </div>
-                        <div class="user-meta-email">{{ u.email or 'No email' }}</div>
-                      </div>
+                      <div class="user-meta-email">{{ u.email or 'No email' }}</div>
                     </div>
                   </td>
 
@@ -668,37 +738,29 @@
                     {% endif %}
                   </td>
 
-                  <!-- Login Method -->
+                  <!-- Login Method (Icon only) -->
                   <td>
-                    <span class="method-badge {{ u.login_method }}">
+                    <span class="method-badge {{ u.login_method }}" title="{% if u.login_method == 'google' %}Google OAuth{% else %}Password Login{% endif %}">
                       {% if u.login_method == 'google' %}
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
-                      Google
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
                       {% else %}
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3"/></svg>
-                      Password
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-2-2l2 2"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3"/></svg>
                       {% endif %}
                     </span>
                   </td>
 
-                  <!-- Status -->
+                  <!-- Status (Clean Text) -->
                   <td>
                     {% if u.is_blocked %}
-                    <span class="status-pill-badge blocked">
-                      <span class="status-dot-indicator"></span>
-                      Blocked
-                    </span>
+                    <span class="status-pill-badge blocked">Blocked</span>
                     {% else %}
-                    <span class="status-pill-badge active">
-                      <span class="status-dot-indicator"></span>
-                      Active
-                    </span>
+                    <span class="status-pill-badge active">Active</span>
                     {% endif %}
                   </td>
 
-                  <!-- Joined Date -->
-                  <td style="color:var(--text-secondary);white-space:nowrap;">
-                    {{ u.created_at.strftime('%d %b %Y') if u.created_at and u.created_at.strftime is defined else u.created_at }}
+                  <!-- Joined Date + Time -->
+                  <td style="color:var(--text-secondary);white-space:nowrap;font-size:12px;">
+                    {{ u.created_at.strftime('%d %b %Y, %I:%M %p') if u.created_at and u.created_at.strftime is defined else u.created_at }}
                   </td>
 
                   <!-- Actions -->
@@ -992,41 +1054,122 @@
 
         <!-- Subjects -->
         {% if section == 'subjects' %}
-        <div class="section-heading" style="margin-bottom:12px;">Subjects</div>
-        <div style="margin-bottom:16px;">
-          <a class="subject-card-link" href="{{ url_for('admin.admin_subject_add') }}">+ Add Subject</a>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div class="section-heading" style="margin:0;">Subjects Management</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">
+              Manage courses, credits, core curriculum, and specialisation electives across semesters.
+            </div>
+          </div>
+          <a class="btn-primary" href="{{ url_for('admin.admin_subject_add') }}" style="width:auto;padding:0.75rem 1.3rem;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add Subject
+          </a>
         </div>
 
+        <!-- Semester Filter Tabs -->
+        <div class="sem-filter-tabs">
+          <a href="{{ url_for('admin.admin_subjects_list', sem='all', q=request.args.get('q',''), type=type_filter) }}"
+             class="sem-tab-btn {% if sem_filter == 'all' %}active{% endif %}">
+            <span>All Semesters</span>
+            <span class="tab-count">{{ stats_subjects.total }}</span>
+          </a>
+          {% for s_num in [1, 2, 3, 4, 5, 6] %}
+          <a href="{{ url_for('admin.admin_subjects_list', sem=s_num, q=request.args.get('q',''), type=type_filter) }}"
+             class="sem-tab-btn {% if sem_filter == (s_num|string) %}active{% endif %}">
+            <span>Sem {{ s_num }}</span>
+            <span class="tab-count">{{ sem_counts.get(s_num, 0) }}</span>
+          </a>
+          {% endfor %}
+        </div>
+
+        <!-- Search & Type Filters -->
+        <div style="margin-bottom:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <form method="get" action="{{ url_for('admin.admin_subjects_list') }}"
+            style="flex:1;display:flex;gap:10px;align-items:center;min-width:260px;">
+            <input type="hidden" name="sem" value="{{ sem_filter }}" />
+            <input type="hidden" name="type" value="{{ type_filter }}" />
+            <input name="q" placeholder="Search subject name..." value="{{ request.args.get('q','') }}"
+              style="flex:1; padding:10px 14px; border:1.5px solid var(--border-color); border-radius:14px; background:#fff; font-size:13.5px;" />
+            <button class="btn-primary" style="width:auto;padding:0.8rem 1.2rem;" type="submit">Search</button>
+          </form>
+          <div style="display:flex;gap:6px;">
+            <a href="{{ url_for('admin.admin_subjects_list', sem=sem_filter, q=request.args.get('q',''), type='all') }}"
+               class="subject-card-link" style="{% if type_filter == 'all' %}background:var(--accent-blue,#4f8ef7);color:#fff;border-color:var(--accent-blue,#4f8ef7);{% endif %}">All Types</a>
+            <a href="{{ url_for('admin.admin_subjects_list', sem=sem_filter, q=request.args.get('q',''), type='core') }}"
+               class="subject-card-link" style="{% if type_filter == 'core' %}background:#2563eb;color:#fff;border-color:#2563eb;{% endif %}">Core Only</a>
+            <a href="{{ url_for('admin.admin_subjects_list', sem=sem_filter, q=request.args.get('q',''), type='elective') }}"
+               class="subject-card-link" style="{% if type_filter == 'elective' %}background:#9333ea;color:#fff;border-color:#9333ea;{% endif %}">Electives Only</a>
+          </div>
+        </div>
+
+        <!-- Subjects Tables -->
+        {% if not subjects_grouped %}
+        <div class="empty-state" style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;padding:36px 20px;text-align:center;">
+          <div class="empty-state-title">No subjects found</div>
+          <div class="empty-state-desc">No subjects match the selected semester or search query.</div>
+        </div>
+        {% else %}
+
         {% for sem, subs in subjects_grouped.items() %}
-        <div style="margin-bottom:18px;">
-          <div
-            style="font-size:13px;font-weight:900;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px;margin:8px 0;">
-            Semester {{ sem }}</div>
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-            <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);font-weight:800;">{{ subs|length
-              }} Subjects</div>
-            <div style="padding:10px 18px;overflow:auto;">
-              <table style="width:100%;border-collapse:collapse;min-width:740px;">
+        <div style="margin-bottom:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 4px 10px 4px;">
+            <div style="font-size:14px;font-weight:900;color:#0f172a;display:flex;align-items:center;gap:8px;">
+              <span class="sem-badge" style="background:#4f46e5;color:#fff;border-color:#4f46e5;">Semester {{ sem }}</span>
+              <span style="font-size:12px;font-weight:700;color:var(--text-secondary);">({{ subs|length }} subject{% if subs|length != 1 %}s{% endif %})</span>
+            </div>
+          </div>
+
+          <div class="users-table-container">
+            <div class="users-table-scroll">
+              <table class="users-table">
                 <thead>
-                  <tr style="text-align:left;font-size:12px;color:var(--text-secondary);">
-                    <th style="padding:10px 6px;">Name</th>
-                    <th style="padding:10px 6px;">Credits</th>
-                    <th style="padding:10px 6px;">Active</th>
-                    <th style="padding:10px 6px;">Actions</th>
+                  <tr>
+                    <th>Subject Name</th>
+                    <th>Credits</th>
+                    <th>Type</th>
+                    <th>Elective Group</th>
+                    <th>Status</th>
+                    <th class="th-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for s in subs %}
-                  <tr style="border-top:1px solid var(--border-color);">
-                    <td style="padding:10px 6px;font-weight:800;">{{ s.subject_name }}</td>
-                    <td style="padding:10px 6px;">{{ s.credit }}</td>
-                    <td style="padding:10px 6px;">
-                      <span class="grade-pill status-green">Active</span>
+                  <tr>
+                    <td>
+                      <div style="font-weight:800;font-size:14px;color:#0f172a;">{{ s.subject_name }}</div>
                     </td>
-
-                    <td style="padding:10px 6px;white-space:nowrap;">
-                      <a class="subject-card-link"
-                        href="{{ url_for('admin.admin_subject_edit', subject_id=s.subject_id) }}">Edit</a>
+                    <td>
+                      <span class="credit-badge">{{ s.credit }} cr</span>
+                    </td>
+                    <td>
+                      {% if s.is_elective %}
+                      <span class="subject-type-pill elective">Elective</span>
+                      {% else %}
+                      <span class="subject-type-pill core">Core</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if s.elective_group %}
+                      <span class="elective-chip">{{ s.elective_group }}</span>
+                      {% else %}
+                      <span style="color:var(--text-secondary);font-size:12px;">—</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if s.is_active %}
+                      <span class="status-pill-badge active">Active</span>
+                      {% else %}
+                      <span class="status-pill-badge blocked">Inactive</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="user-row-actions">
+                        <a class="action-btn-subtle" href="{{ url_for('admin.admin_subject_edit', subject_id=s.subject_id) }}" title="Edit Subject">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          <span>Edit</span>
+                        </a>
+                      </div>
                     </td>
                   </tr>
                   {% endfor %}
@@ -1036,6 +1179,8 @@
           </div>
         </div>
         {% endfor %}
+
+        {% endif %}
         {% endif %}
 
         <!-- Subject add -->

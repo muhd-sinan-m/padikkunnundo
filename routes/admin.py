@@ -381,14 +381,52 @@ def admin_user_unblock(user_id: int):
 @login_required
 @admin_required
 def admin_subjects_list():
-    subjects = Subject.query.order_by(Subject.semester.asc(), Subject.subject_name.asc()).all()
+    sem_filter = (request.args.get("sem") or "all").strip().lower()
+    q = (request.args.get("q") or "").strip().lower()
+    type_filter = (request.args.get("type") or "all").strip().lower()
+
+    query = Subject.query
+
+    if q:
+        query = query.filter(Subject.subject_name.ilike(f"%{q}%"))
+
+    if sem_filter != "all" and sem_filter.isdigit():
+        query = query.filter(Subject.semester == int(sem_filter))
+
+    if type_filter == "elective":
+        query = query.filter(Subject.is_elective == True)
+    elif type_filter == "core":
+        query = query.filter(Subject.is_elective == False)
+
+    subjects = query.order_by(Subject.semester.asc(), Subject.subject_name.asc()).all()
     grouped: dict[int, list[Subject]] = {}
     for s in subjects:
         grouped.setdefault(s.semester, []).append(s)
 
+    # Compute overall subject counts for tabs
+    all_subjects = Subject.query.all()
+    sem_counts: dict[int, int] = defaultdict(int)
+    total_count = len(all_subjects)
+    elective_count = 0
+    core_count = 0
+    for s in all_subjects:
+        sem_counts[s.semester] += 1
+        if s.is_elective:
+            elective_count += 1
+        else:
+            core_count += 1
+
     return render_template(
         "admin.html",
         section="subjects",
+        sem_filter=sem_filter,
+        type_filter=type_filter,
+        sem_counts=sem_counts,
+        stats_subjects={
+            "total": total_count,
+            "core": core_count,
+            "elective": elective_count,
+        },
         subjects_grouped={
             sem: [s for s in subs]
             for sem, subs in sorted(grouped.items(), key=lambda x: x[0])
