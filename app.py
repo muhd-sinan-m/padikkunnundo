@@ -109,6 +109,23 @@ def create_app(config_class=Config) -> Flask:
                 return Markup(f'{escape(first_part)}<br class="desktop-only-br"> {escape(last_part)}')
         return cleaned_name
 
+    @app.template_filter("to_ist")
+    def to_ist_filter(dt, fmt="%d %b %Y, %I:%M %p"):
+        if not dt:
+            return ""
+        from datetime import datetime, timedelta, timezone
+        if isinstance(dt, str):
+            try:
+                dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+            except Exception:
+                return dt
+        if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
+            ist_tz = timezone(timedelta(hours=5, minutes=30))
+            ist_dt = dt.astimezone(ist_tz)
+        else:
+            ist_dt = dt + timedelta(hours=5, minutes=30)
+        return ist_dt.strftime(fmt)
+
     @app.context_processor
     def inject_platforms():
         return {
