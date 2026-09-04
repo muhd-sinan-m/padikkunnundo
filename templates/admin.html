@@ -627,40 +627,6 @@
           </div>
         </div>
 
-        <div style="margin-bottom:22px;">
-          <div class="section-heading" style="margin-bottom:12px;">Users Count</div>
-
-          <div style="background:#fff;border:1.5px solid var(--border-color);border-radius:18px;overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);font-weight:800;">Users per day
-              (last 14)</div>
-            <div style="padding:18px 20px;">
-              {% if users_per_date|length == 0 %}
-              <div class="empty-state">
-                <div class="empty-state-title">No user activity</div>
-                <div class="empty-state-desc">Users have not been created yet.</div>
-              </div>
-              {% else %}
-              <div class="users-chart" role="img" aria-label="Users count chart">
-                {% set max_val = (users_per_date|map(attribute='count')|max) if users_per_date|length > 0 else 0 %}
-                <div class="users-chart-bars">
-                  {% for p in users_per_date %}
-                  {% set c = p.count %}
-                  {% set h = ( (c / max_val) * 100 ) if max_val and max_val > 0 else 0 %}
-                  <div class="users-chart-bar" title="{{ p.date }}: {{ c }}">
-                    <div class="users-chart-bar-fill" style="height: {{ h }}%;"></div>
-                    <div class="users-chart-bar-label">{{ p.date }}</div>
-                  </div>
-                  {% endfor %}
-                </div>
-                <div class="users-chart-xaxis">
-                  <span>Old</span>
-                  <span style="margin-left:auto;">New</span>
-                </div>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
         {% endif %}
 
         <!-- Users -->

@@ -163,28 +163,6 @@ def admin_dashboard():
 
     low_performing_subjects = [x for x in subject_avg if x["is_low_performing"]]
 
-    # ── Query 5: users per day (last 14 days, aggregated in SQL) ─────────────
-    from datetime import date, timedelta
-    today = date.today()
-    start_day = today - timedelta(days=13)
-
-    users_per_date_rows = (
-        db.session.query(
-            db.func.date(User.created_at).label("date"),
-            db.func.count(User.id).label("count"),
-        )
-        .filter(User.created_at.isnot(None))
-        .group_by(db.func.date(User.created_at))
-        .order_by(db.func.date(User.created_at).asc())
-        .all()
-    )
-
-    counts_map = {row.date.isoformat(): int(row.count) for row in users_per_date_rows}
-    users_per_date = [
-        {"date": (start_day + timedelta(days=i)).isoformat(), "count": counts_map.get((start_day + timedelta(days=i)).isoformat(), 0)}
-        for i in range(14)
-    ]
-
     return render_template(
         "admin.html",
         section="dashboard",
@@ -197,7 +175,6 @@ def admin_dashboard():
             "total_marks_rows": total_mark_rows,
             "marks_entered_rows": marks_entered_rows,
         },
-        users_per_date=users_per_date,
         current_user=current_user,
     )
 
