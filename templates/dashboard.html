@@ -94,7 +94,9 @@ endblock %}
     </div>
   </a>
   <a href="{{ platforms.lab_practice }}" target="_blank" rel="noopener" class="platform-card" id="card-lab-practice">
-    <div class="platform-card-icon place" aria-hidden="true">⚙️</div>
+    <div class="platform-card-icon place" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/logo_codeariyoo.webp') }}" alt="" class="platform-card-img" loading="lazy" decoding="async" width="28" height="28">
+    </div>
     <div class="platform-card-text">
       <div class="platform-card-name">CodeAriyoo</div>
       <div class="platform-card-desc">Programming and lab exercises</div>
