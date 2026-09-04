@@ -17,6 +17,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     is_onboarded = db.Column(db.Boolean, default=False, nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    is_blocked = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    blocked_at = db.Column(db.DateTime, nullable=True)
 
     reset_token_hash = db.Column(db.String(255), nullable=True, index=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
@@ -33,6 +35,7 @@ class User(db.Model):
             "course": self.course,
             "college": self.college,
             "is_onboarded": self.is_onboarded,
+            "is_blocked": self.is_blocked,
         }
 
 

@@ -242,12 +242,18 @@ def _get_elective_names_bulk(users: list[User]) -> dict[int, str]:
 @admin_required
 def admin_users_list():
     q = (request.args.get("q") or "").strip().lower()
+    status_filter = (request.args.get("status") or "all").strip().lower()
     query = User.query
 
     if q:
         query = query.filter(
             (User.name.ilike(f"%{q}%")) | (User.email.ilike(f"%{q}%"))
         )
+
+    if status_filter == "blocked":
+        query = query.filter(User.is_blocked == True)
+    elif status_filter == "active":
+        query = query.filter(User.is_blocked == False)
 
     users = query.order_by(User.created_at.desc()).all()
 
@@ -258,9 +264,13 @@ def admin_users_list():
         # Heuristic: local accounts have password_hash; OAuth users generally have no password_hash.
         return "local" if u.password_hash else "google"
 
+    current_user = get_current_user()
+
     return render_template(
         "admin.html",
         section="users",
+        status_filter=status_filter,
+        current_user=current_user,
         users=[
             {
                 "id": u.id,
@@ -270,6 +280,8 @@ def admin_users_list():
                 "elective": elective_names.get(u.id, "—"),
                 "login_method": login_method(u),
                 "created_at": u.created_at,
+                "is_blocked": bool(u.is_blocked),
+                "is_admin": bool(u.is_admin),
             }
             for u in users
         ],
@@ -322,6 +334,46 @@ def admin_user_delete(user_id: int):
     db.session.commit()
 
     flash("User deleted.", "success")
+    return redirect(url_for("admin.admin_users_list"))
+
+
+@admin_bp.route("/users/<int:user_id>/block", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_block(user_id: int):
+    current_user = get_current_user()
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
+    if current_user and user.id == current_user.id:
+        flash("You cannot block your own account.", "error")
+        return redirect(url_for("admin.admin_users_list"))
+    if user.is_admin:
+        flash("Cannot block an administrator account.", "error")
+        return redirect(url_for("admin.admin_users_list"))
+
+    from datetime import datetime
+    user.is_blocked = True
+    user.blocked_at = datetime.utcnow()
+    db.session.commit()
+
+    flash(f"User {user.name} has been blocked.", "success")
+    return redirect(url_for("admin.admin_users_list"))
+
+
+@admin_bp.route("/users/<int:user_id>/unblock", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_unblock(user_id: int):
+    user = db.session.get(User, user_id)
+    if not user:
+        abort(404)
+
+    user.is_blocked = False
+    user.blocked_at = None
+    db.session.commit()
+
+    flash(f"User {user.name} has been unblocked.", "success")
     return redirect(url_for("admin.admin_users_list"))
 
 

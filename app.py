@@ -124,8 +124,28 @@ def create_app(config_class=Config) -> Flask:
 
     def ensure_schema() -> None:
         inspector = inspect(db.engine)
-        if "users" not in inspector.get_table_names():
+        tables = inspector.get_table_names()
+        if "users" not in tables:
             db.create_all()
+        else:
+            # Check for newly added columns on existing users table
+            user_columns = {c["name"] for c in inspector.get_columns("users")}
+            if "is_blocked" not in user_columns:
+                try:
+                    if db.engine.dialect.name == "sqlite":
+                        db.session.execute(db.text("ALTER TABLE users ADD COLUMN is_blocked BOOLEAN NOT NULL DEFAULT 0;"))
+                    else:
+                        db.session.execute(db.text("ALTER TABLE users ADD COLUMN is_blocked BOOLEAN NOT NULL DEFAULT FALSE;"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
+            if "blocked_at" not in user_columns:
+                try:
+                    db.session.execute(db.text("ALTER TABLE users ADD COLUMN blocked_at TIMESTAMP;"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
 
         index_statements = [
             "CREATE INDEX IF NOT EXISTS ix_enrollments_user_semester ON enrollments (user_id, semester);",
@@ -135,6 +155,7 @@ def create_app(config_class=Config) -> Flask:
             "CREATE INDEX IF NOT EXISTS ix_users_semester ON users (semester);",
             "CREATE INDEX IF NOT EXISTS ix_users_created_at ON users (created_at);",
             "CREATE INDEX IF NOT EXISTS ix_users_reset_token_hash ON users (reset_token_hash);",
+            "CREATE INDEX IF NOT EXISTS ix_users_is_blocked ON users (is_blocked);",
         ]
         for stmt in index_statements:
             try:

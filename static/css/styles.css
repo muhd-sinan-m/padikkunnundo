@@ -961,6 +961,7 @@ textarea {
   height: 42px;
   object-fit: contain;
   display: block;
+  border-radius: 8px;
 }
 
 .platform-card-icon.pyq {
@@ -973,6 +974,10 @@ textarea {
 
 .platform-card-icon.place {
   background: #ECFDF5;
+}
+
+.platform-card-icon.place .platform-card-img {
+  border-radius: 8px;
 }
 
 .platform-card-icon.topics {

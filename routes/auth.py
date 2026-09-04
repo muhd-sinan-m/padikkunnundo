@@ -147,6 +147,8 @@ def get_current_user() -> User | None:
         if payload:
             user = db.session.get(User, int(payload["sub"]))
             if user is not None:
+                if user.is_blocked:
+                    return None
                 return user
     return None
 
@@ -258,6 +260,14 @@ def login():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 401
 
+    if user.is_blocked:
+        return render_template(
+            "login.html",
+            error="Your account has been suspended by an administrator. Please contact support.",
+            college_name=current_app.config["COLLEGE_NAME"],
+            college_domain=current_app.config["COLLEGE_DOMAIN"],
+        ), 403
+
     response = redirect(
         url_for("pages.onboarding") if not user.is_onboarded else url_for("pages.dashboard")
     )
@@ -293,7 +303,7 @@ def reset_password_request():
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or not user.password_hash:
+    if not user or not user.password_hash or user.is_blocked:
         return render_template(
             "reset_request.html",
             success="If an account with that email exists, you will receive password reset instructions.",
@@ -451,6 +461,14 @@ def google_callback():
 
     user = User.query.filter_by(email=email).first()
     is_new = user is None
+
+    if not is_new and user.is_blocked:
+        return render_template(
+            "login.html",
+            error="Your account has been suspended by an administrator. Please contact support.",
+            college_name=current_app.config["COLLEGE_NAME"],
+            college_domain=current_app.config["COLLEGE_DOMAIN"],
+        ), 403
 
     if is_new:
         user = User(
