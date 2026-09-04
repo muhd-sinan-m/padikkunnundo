@@ -45,7 +45,6 @@ def get_cf_real_ip():
 
 limiter = Limiter(
     key_func=get_cf_real_ip,
-    default_limits=["100 per hour"],
 )
 
 
