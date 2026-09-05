@@ -195,6 +195,15 @@ def register():
             college_domain=current_app.config["COLLEGE_DOMAIN"],
         ), 400
 
+    college_domain = current_app.config["COLLEGE_DOMAIN"]
+    if not email.endswith(f"@{college_domain}"):
+        return render_template(
+            "login.html",
+            error=f"Only @{college_domain} email addresses are permitted.",
+            college_name=current_app.config["COLLEGE_NAME"],
+            college_domain=current_app.config["COLLEGE_DOMAIN"],
+        ), 400
+
     if User.query.filter(User.name.ilike(name)).first():
         return render_template(
             "login.html",

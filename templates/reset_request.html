@@ -11,7 +11,7 @@
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=20260622-3">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=20260905-1">
 </head>
 <body>
 
@@ -72,7 +72,7 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <label>
                 <span>Email Address</span>
-                <input type="email" name="email" placeholder="Your college email address" required>
+                <input type="email" name="email" placeholder="Your Marian email" required>
               </label>
               <button type="submit" class="auth-submit">Send Reset Link</button>
             </form>
