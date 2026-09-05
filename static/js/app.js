@@ -137,10 +137,46 @@ function getGreeting(name) {
   if (!openBtn || !panel) return;   // Not on a page that has the panel.
 
   let loaded = false;
+  let currentNotifications = [];
 
-  function renderAnnouncements(items) {
+  function updateBadge(unreadCount) {
+    if (badge) {
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.textContent = '';
+        badge.style.display = 'none';
+      }
+    }
+    if (openBtn) {
+      if (unreadCount > 0) {
+        openBtn.classList.add('has-unread');
+      } else {
+        openBtn.classList.remove('has-unread');
+      }
+    }
+    const mobileBellBtn = document.getElementById('open-notice-panel-mobile');
+    if (mobileBellBtn) {
+      if (unreadCount > 0) {
+        mobileBellBtn.classList.add('has-unread');
+      } else {
+        mobileBellBtn.classList.remove('has-unread');
+      }
+    }
+  }
+
+  function renderAnnouncements(data) {
     if (!pane) return;
-    if (!items || items.length === 0) {
+    const items = Array.isArray(data) ? data : (data && data.notifications ? data.notifications : []);
+    currentNotifications = items;
+    const unreadCount = (data && typeof data.unread_count === 'number')
+      ? data.unread_count
+      : items.filter(a => !a.is_read).length;
+
+    updateBadge(unreadCount);
+
+    if (items.length === 0) {
       pane.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">📢</div>
@@ -149,49 +185,104 @@ function getGreeting(name) {
         </div>`;
       return;
     }
-    // Update badge
-    if (badge) {
-      badge.textContent = items.length > 9 ? '9+' : items.length;
-      badge.style.display = 'flex';
+
+    let subbarHtml = '';
+    if (unreadCount > 0) {
+      subbarHtml = `
+        <div class="notice-panel-subbar">
+          <span class="notice-unread-indicator">
+            ${unreadCount} unread ${unreadCount === 1 ? 'notice' : 'notices'}
+          </span>
+          <button class="notice-mark-all-btn" id="mark-all-notices-read">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark all read
+          </button>
+        </div>`;
     }
-    if (openBtn) {
-      openBtn.classList.add('has-unread');
-    }
-    pane.innerHTML = items.map(a => {
+
+    const cardsHtml = items.map(a => {
       const date = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN', {
         day: 'numeric', month: 'short', year: 'numeric'
       }) : '';
+      const isRead = !!a.is_read;
+
       return `
-        <div style="border:1.5px solid var(--border-color);border-radius:14px;padding:14px 16px;margin-bottom:10px;background:#fff;">
-          <div style="font-weight:800;font-size:14px;margin-bottom:4px;">${escHtml(a.title)}</div>
-          <div style="font-size:13px;color:var(--text-secondary);white-space:pre-wrap;">${escHtml(a.body)}</div>
-          ${date ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:8px;font-weight:600;">${escHtml(date)}</div>` : ''}
+        <div class="notice-item ${isRead ? 'is-read' : 'is-unread'}" id="notice-item-${a.id}">
+          <div class="notice-item-top">
+            <div class="notice-title-row">
+              <span class="notice-item-title">${escHtml(a.title)}</span>
+            </div>
+            <button class="notice-read-toggle ${isRead ? 'read' : 'unread'}" data-id="${a.id}" data-action="${isRead ? 'unread' : 'read'}" title="${isRead ? 'Mark as unread' : 'Mark as read'}" aria-label="${isRead ? 'Mark as unread' : 'Mark as read'}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>${isRead ? 'Read' : 'Mark read'}</span>
+            </button>
+          </div>
+          <div class="notice-item-body">${escHtml(a.body)}</div>
+          ${date ? `<div class="notice-item-date">${escHtml(date)}</div>` : ''}
         </div>`;
     }).join('');
+
+    pane.innerHTML = subbarHtml + cardsHtml;
+
+    // Attach listener for mark all as read
+    const markAllBtn = document.getElementById('mark-all-notices-read');
+    if (markAllBtn) {
+      markAllBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        markAllBtn.disabled = true;
+        markAllBtn.innerHTML = '<span>Marking...</span>';
+        currentNotifications.forEach(n => { n.is_read = true; });
+        window._cachedNotifications = { notifications: currentNotifications, unread_count: 0 };
+        renderAnnouncements(window._cachedNotifications);
+        await api('/api/notifications/mark-all-read', { method: 'POST' });
+      });
+    }
+
+    // Attach listeners for individual mark read/unread buttons
+    pane.querySelectorAll('.notice-read-toggle').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = parseInt(btn.dataset.id, 10);
+        const action = btn.dataset.action; // 'read' or 'unread'
+        const isNowRead = (action === 'read');
+
+        const target = currentNotifications.find(n => n.id === id);
+        if (target) {
+          target.is_read = isNowRead;
+        }
+
+        const newUnread = currentNotifications.filter(n => !n.is_read).length;
+        window._cachedNotifications = { notifications: currentNotifications, unread_count: newUnread };
+        renderAnnouncements(window._cachedNotifications);
+
+        await api(`/api/notifications/${id}/${action}`, { method: 'POST' });
+      });
+    });
   }
 
   async function loadAnnouncements() {
-    if (loaded) return;
+    if (loaded && window._cachedNotifications) {
+      renderAnnouncements(window._cachedNotifications);
+      return;
+    }
     loaded = true;
     if (pane) {
-      pane.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">Loading…</div>`;
+      pane.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:13px;">Loading notices…</div>`;
     }
-    const items = await api('/api/notifications');
-    renderAnnouncements(Array.isArray(items) ? items : []);
+    const data = await api('/api/notifications');
+    window._cachedNotifications = data || { notifications: [], unread_count: 0 };
+    renderAnnouncements(window._cachedNotifications);
   }
 
   // Pre-fetch on page load so badge shows without opening the panel
-  api('/api/notifications').then(items => {
-    if (Array.isArray(items) && items.length > 0) {
-      if (badge) {
-        badge.textContent = items.length > 9 ? '9+' : items.length;
-        badge.style.display = 'flex';
-      }
-      if (openBtn) {
-        openBtn.classList.add('has-unread');
-      }
-      // Cache for when panel opens
-      window._cachedNotifications = items;
+  api('/api/notifications').then(data => {
+    if (data) {
+      window._cachedNotifications = data;
+      const items = Array.isArray(data) ? data : (data.notifications || []);
+      const unreadCount = (typeof data.unread_count === 'number')
+        ? data.unread_count
+        : items.filter(a => !a.is_read).length;
+      updateBadge(unreadCount);
     }
   });
 
@@ -201,7 +292,6 @@ function getGreeting(name) {
     overlay.setAttribute('aria-hidden', 'false');
     openBtn.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
-    // Use cached data if available
     if (window._cachedNotifications) {
       renderAnnouncements(window._cachedNotifications);
       loaded = true;

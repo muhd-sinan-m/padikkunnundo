@@ -8,7 +8,7 @@ from flask import Blueprint, abort, flash, jsonify, redirect, render_template, r
 from sqlalchemy import func, case
 from sqlalchemy.orm import joinedload
 
-from models import Announcement, Enrollment, Mark, Subject, User, db
+from models import Announcement, AnnouncementRead, Enrollment, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
 from grading import compute_grade_requirements, get_mark_structure
 
@@ -303,10 +303,11 @@ def admin_user_delete(user_id: int):
     if not user:
         abort(404)
 
-    # Hard delete user + enrollments + marks.
+    # Hard delete user + enrollments + marks + announcement reads.
     # (No cascade configured in models, so do manual deletes.)
     Mark.query.filter_by(user_id=user_id).delete(synchronize_session=False)
     Enrollment.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+    AnnouncementRead.query.filter_by(user_id=user_id).delete(synchronize_session=False)
     db.session.delete(user)
     db.session.commit()
 
@@ -545,6 +546,7 @@ def admin_announcement_delete(id: int):
     if not ann:
         abort(404)
 
+    AnnouncementRead.query.filter_by(announcement_id=id).delete(synchronize_session=False)
     db.session.delete(ann)
     db.session.commit()
 

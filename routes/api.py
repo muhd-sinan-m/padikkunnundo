@@ -8,7 +8,7 @@ from grading import (
     compute_grade_requirements,
     get_mark_structure,
 )
-from models import Announcement, Enrollment, Mark, Subject, User, db
+from models import Announcement, AnnouncementRead, Enrollment, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -325,19 +325,87 @@ def focus():
 @api_bp.route("/notifications")
 @login_required
 def notifications():
+    user = get_current_user()
     anns = (
         Announcement.query
         .order_by(Announcement.created_at.desc())
-        .limit(10)
+        .limit(20)
         .all()
     )
 
-    return jsonify([
-        {
+    read_ids = set()
+    if user:
+        read_records = AnnouncementRead.query.filter_by(user_id=user.id).all()
+        read_ids = {r.announcement_id for r in read_records}
+
+    result = []
+    unread_count = 0
+    for a in anns:
+        is_read = a.id in read_ids
+        if not is_read:
+            unread_count += 1
+        result.append({
             "id": a.id,
             "title": a.title,
             "body": a.body,
             "created_at": a.created_at.isoformat() if a.created_at else None,
-        }
-        for a in anns
-    ])
+            "is_read": is_read,
+        })
+
+    return jsonify({
+        "notifications": result,
+        "unread_count": unread_count,
+    })
+
+
+@api_bp.route("/notifications/<int:announcement_id>/read", methods=["POST"])
+@login_required
+def mark_notification_read(announcement_id: int):
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    existing = AnnouncementRead.query.filter_by(
+        user_id=user.id, announcement_id=announcement_id
+    ).first()
+    if not existing:
+        db.session.add(AnnouncementRead(user_id=user.id, announcement_id=announcement_id))
+        db.session.commit()
+
+    return jsonify({"success": True, "announcement_id": announcement_id, "is_read": True})
+
+
+@api_bp.route("/notifications/<int:announcement_id>/unread", methods=["POST"])
+@login_required
+def mark_notification_unread(announcement_id: int):
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    AnnouncementRead.query.filter_by(
+        user_id=user.id, announcement_id=announcement_id
+    ).delete(synchronize_session=False)
+    db.session.commit()
+
+    return jsonify({"success": True, "announcement_id": announcement_id, "is_read": False})
+
+
+@api_bp.route("/notifications/mark-all-read", methods=["POST"])
+@login_required
+def mark_all_notifications_read():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    anns = Announcement.query.all()
+    existing_reads = {
+        r.announcement_id
+        for r in AnnouncementRead.query.filter_by(user_id=user.id).all()
+    }
+    for a in anns:
+        if a.id not in existing_reads:
+            db.session.add(AnnouncementRead(user_id=user.id, announcement_id=a.id))
+    db.session.commit()
+
+    return jsonify({"success": True, "unread_count": 0})
+

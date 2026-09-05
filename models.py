@@ -140,3 +140,21 @@ class Mark(db.Model):
             "sea1": self.sea1,
             "sea2": self.sea2,
         }
+
+
+class AnnouncementRead(db.Model):
+    __tablename__ = "announcement_reads"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    announcement_id = db.Column(db.Integer, db.ForeignKey("announcements.id", ondelete="CASCADE"), nullable=False, index=True)
+    read_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship("User", backref=db.backref("announcement_reads", cascade="all, delete-orphan", lazy="dynamic"))
+    announcement = db.relationship("Announcement", backref=db.backref("reads", cascade="all, delete-orphan", lazy="dynamic"))
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "announcement_id", name="uq_user_announcement_read"),
+        db.Index("ix_announcement_reads_user_announcement", "user_id", "announcement_id"),
+    )
+

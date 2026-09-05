@@ -83,18 +83,24 @@
       // so we create fresh <script> elements for each one.
       // External scripts (src=) must be appended to the document —
       // setting textContent on a src-bearing script does nothing.
-// Re-execute page-specific scripts from the fetched document.
+      // Re-execute page-specific scripts from the fetched document.
       // Search the entire fetched doc (not just #main-content) because
-      // {% block scripts %} now lives outside #main-content in base.html.
+      // {% block scripts %} lives outside #main-content in base.html.
       // Skip app.js and nav.js — they are already loaded globally.
-      doc.querySelectorAll('script[src]').forEach(function (oldScript) {
-        if (oldScript.src.includes('app.js') || oldScript.src.includes('nav.js')) return;
-        var newScript = document.createElement('script');
-        for (var i = 0; i < oldScript.attributes.length; i++) {
-          var attr = oldScript.attributes[i];
-          newScript.setAttribute(attr.name, attr.value);
+      doc.querySelectorAll('script').forEach(function (oldScript) {
+        if (oldScript.src) {
+          if (oldScript.src.includes('app.js') || oldScript.src.includes('nav.js')) return;
+          var newScript = document.createElement('script');
+          for (var i = 0; i < oldScript.attributes.length; i++) {
+            var attr = oldScript.attributes[i];
+            newScript.setAttribute(attr.name, attr.value);
+          }
+          document.body.appendChild(newScript);
+        } else if (oldScript.textContent.trim()) {
+          var inlineScript = document.createElement('script');
+          inlineScript.textContent = oldScript.textContent;
+          document.body.appendChild(inlineScript);
         }
-        document.body.appendChild(newScript);
       });
       // Update the address bar
       if (!isPopState) {
