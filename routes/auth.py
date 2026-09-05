@@ -21,7 +21,7 @@ from flask import (
 from flask_limiter import Limiter
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from models import User, db
+from models import Enrollment, Mark, User, db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 oauth = OAuth()
@@ -546,12 +546,57 @@ def markkundo_sso():
     if not sso_secret:
         return "SSO is not configured on this server.", 503
 
+    # Fetch user's subjects and marks for their active semester
+    subjects_data = []
+    if user.semester is not None:
+        enrollments = (
+            Enrollment.query
+            .filter_by(user_id=user.id, semester=user.semester)
+            .all()
+        )
+        user_marks = {m.subject_id: m for m in Mark.query.filter_by(user_id=user.id).all()}
+
+        for enr in enrollments:
+            subj = enr.subject
+            if not subj:
+                continue
+            m = user_marks.get(subj.subject_id)
+            marks_dict = {}
+            if m:
+                marks_dict = {
+                    "isa": m.isa,
+                    "cp": m.cp,
+                    "lb": m.lb,
+                    "ld": m.ld,
+                    "sea1": m.sea1,
+                    "sea2": m.sea2,
+                }
+            subjects_data.append({
+                "subject_id": subj.subject_id,
+                "subject_name": subj.subject_name,
+                "credit": subj.credit,
+                "semester": subj.semester,
+                "is_elective": subj.is_elective,
+                "elective_group": subj.elective_group,
+                "marks": marks_dict,
+            })
+
+    target_subject_id = request.args.get("subject_id")
+    target_subject_int = None
+    if target_subject_id and target_subject_id.isdigit():
+        target_subject_int = int(target_subject_id)
+
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user.email,
         "iss": "padikkunundo",
         "aud": "markkundo",
         "name": user.name or "",
+        "semester": user.semester,
+        "course": user.course or "",
+        "college": user.college or "",
+        "target_subject_id": target_subject_int,
+        "subjects": subjects_data,
         "iat": now,
         "exp": now + timedelta(seconds=expiry_seconds),
     }
@@ -562,4 +607,7 @@ def markkundo_sso():
     )
 
     sso_url = f"{markkundo_url}/auth/sso?token={token}"
+    if target_subject_int:
+        sso_url += f"&subject_id={target_subject_int}"
     return redirect(sso_url)
+
