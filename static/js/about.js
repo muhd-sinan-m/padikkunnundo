@@ -75,10 +75,37 @@
     }
   };
 
+  let activeDevKey = null;
+
+  window.openDevImageLightbox = function (src, theme, name) {
+    const lightbox = document.getElementById('dev-img-lightbox');
+    const imgEl = document.getElementById('dev-img-lightbox-img');
+    const frameEl = document.getElementById('dev-img-lightbox-frame');
+    const captionEl = document.getElementById('dev-img-lightbox-caption');
+
+    if (!lightbox || !src) return;
+
+    if (imgEl) imgEl.src = src;
+    if (frameEl) frameEl.className = 'dev-img-lightbox-frame ' + (theme || '');
+    if (captionEl) captionEl.innerHTML = name || '';
+
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+  };
+
+  window.closeDevImageLightbox = function () {
+    const lightbox = document.getElementById('dev-img-lightbox');
+    if (lightbox) {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+    }
+  };
+
   window.openAboutDevModal = function (key) {
     const dev = developers[key];
     if (!dev) return;
 
+    activeDevKey = key;
     const overlay = document.getElementById('dev-modal-overlay');
     const avatarWrap = document.getElementById('modal-dev-avatar-wrap');
     const numEl = document.getElementById('modal-dev-num');
@@ -91,11 +118,14 @@
     if (!overlay) return;
 
     if (avatarWrap) {
-      avatarWrap.className = 'dev-modal-avatar-wrapper ' + dev.theme;
       if (dev.image) {
+        avatarWrap.className = 'dev-modal-avatar-wrapper has-image ' + dev.theme;
         avatarWrap.innerHTML = `<img src="${dev.image}" alt="Developer" class="dev-modal-avatar-img" />`;
+        avatarWrap.setAttribute('title', 'Tap to view full image');
       } else {
+        avatarWrap.className = 'dev-modal-avatar-wrapper ' + dev.theme;
         avatarWrap.innerHTML = `<div class="dev-modal-avatar-fallback" id="modal-dev-initials">${dev.initials}</div>`;
+        avatarWrap.removeAttribute('title');
       }
     }
     if (numEl) numEl.textContent = dev.number;
@@ -121,6 +151,7 @@
   };
 
   window.closeAboutDevModal = function () {
+    window.closeDevImageLightbox();
     const overlay = document.getElementById('dev-modal-overlay');
     if (overlay) {
       overlay.classList.remove('open');
@@ -134,12 +165,40 @@
     window._aboutDevModalListenerAttached = true;
 
     document.addEventListener('click', function (e) {
-      // 1. Check if clicked a LinkedIn button inside card
+      // 1. Check if clicked lightbox close button
+      if (e.target.closest('#dev-img-lightbox-close') || e.target.closest('.dev-img-lightbox-close')) {
+        e.preventDefault();
+        window.closeDevImageLightbox();
+        return;
+      }
+
+      // 2. Check if clicked lightbox overlay background
+      const lightbox = document.getElementById('dev-img-lightbox');
+      if (lightbox && e.target === lightbox) {
+        e.preventDefault();
+        window.closeDevImageLightbox();
+        return;
+      }
+
+      // 3. Check if clicked avatar inside modal to open lightbox
+      const avatarInModal = e.target.closest('#modal-dev-avatar-wrap.has-image');
+      if (avatarInModal && activeDevKey) {
+        const dev = developers[activeDevKey];
+        if (dev && dev.image) {
+          e.preventDefault();
+          e.stopPropagation();
+          const cleanName = dev.nameHtml ? dev.nameHtml.replace(/<[^>]*>?/gm, '') : '';
+          window.openDevImageLightbox(dev.image, dev.theme, cleanName);
+          return;
+        }
+      }
+
+      // 4. Check if clicked a LinkedIn button inside card
       if (e.target.closest('.premium-linkedin-btn')) {
         return; // allow normal link click
       }
 
-      // 2. Check if clicked a contributor card
+      // 5. Check if clicked a contributor card
       const card = e.target.closest('.contributor-card[data-dev]');
       if (card) {
         e.preventDefault();
@@ -148,14 +207,14 @@
         return;
       }
 
-      // 3. Check if clicked modal close button
+      // 6. Check if clicked modal close button
       if (e.target.closest('#dev-modal-close') || e.target.closest('.dev-modal-close-btn')) {
         e.preventDefault();
         window.closeAboutDevModal();
         return;
       }
 
-      // 4. Check if clicked overlay background
+      // 7. Check if clicked modal overlay background
       const overlay = document.getElementById('dev-modal-overlay');
       if (overlay && e.target === overlay) {
         e.preventDefault();
@@ -166,6 +225,12 @@
 
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
+        const lightbox = document.getElementById('dev-img-lightbox');
+        if (lightbox && lightbox.classList.contains('open')) {
+          e.preventDefault();
+          window.closeDevImageLightbox();
+          return;
+        }
         const overlay = document.getElementById('dev-modal-overlay');
         if (overlay && overlay.classList.contains('open')) {
           window.closeAboutDevModal();
