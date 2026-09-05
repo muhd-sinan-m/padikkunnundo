@@ -581,11 +581,6 @@ def markkundo_sso():
                 "marks": marks_dict,
             })
 
-    target_subject_id = request.args.get("subject_id")
-    target_subject_int = None
-    if target_subject_id and target_subject_id.isdigit():
-        target_subject_int = int(target_subject_id)
-
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user.email,
@@ -595,7 +590,6 @@ def markkundo_sso():
         "semester": user.semester,
         "course": user.course or "",
         "college": user.college or "",
-        "target_subject_id": target_subject_int,
         "subjects": subjects_data,
         "iat": now,
         "exp": now + timedelta(seconds=expiry_seconds),
@@ -607,7 +601,5 @@ def markkundo_sso():
     )
 
     sso_url = f"{markkundo_url}/auth/sso?token={token}"
-    if target_subject_int:
-        sso_url += f"&subject_id={target_subject_int}"
     return redirect(sso_url)
 

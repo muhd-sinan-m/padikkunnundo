@@ -985,7 +985,11 @@ textarea {
 }
 
 .platform-card-icon.mark-analyser {
-  background: #FDF2F8;
+  background: #FAF5FF;
+}
+
+.platform-card-icon.mark-analyser .platform-card-img {
+  border-radius: 8px;
 }
 
 .platform-card-icon.doubtundo {

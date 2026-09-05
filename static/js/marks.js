@@ -141,7 +141,7 @@
       + '<span class="credit-badge">' + subject.credit + ' credits · Total ' + struct.total + '</span>'
 
       // markkundo icon button in header
-      + '<a href="/auth/markkundo-sso?subject_id=' + id + '" target="_blank" rel="noopener" class="markkundo-icon-btn" id="markkundo-hdr-' + id + '" title="Analyse in markkundo" aria-label="Analyse in markkundo">'
+      + '<a href="/auth/markkundo-sso" target="_blank" rel="noopener" class="markkundo-icon-btn" id="markkundo-hdr-' + id + '" title="Analyse in markkundo" aria-label="Analyse in markkundo">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
       + '</a>'
 
@@ -188,7 +188,7 @@
       + ' Find past papers on PYQPortal ↗'
       + '</a>'
 
-      + '<a href="/auth/markkundo-sso?subject_id=' + id + '" target="_blank" rel="noopener" class="pyq-link markkundo-link" id="markkundo-link-' + id + '">'
+      + '<a href="/auth/markkundo-sso" target="_blank" rel="noopener" class="pyq-link markkundo-link" id="markkundo-link-' + id + '">'
       + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
       + '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
       + '</svg>'

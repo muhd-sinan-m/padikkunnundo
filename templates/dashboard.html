@@ -112,7 +112,9 @@ endblock %}
     </div>
   </a>
   <a href="{{ url_for('auth.markkundo_sso') }}" target="_blank" rel="noopener" class="platform-card" id="card-mark-analyser">
-    <div class="platform-card-icon mark-analyser" aria-hidden="true">📊</div>
+    <div class="platform-card-icon mark-analyser" aria-hidden="true">
+      <img src="{{ url_for('static', filename='img/logo_markkundo.webp') }}" alt="" class="platform-card-img" style="border-radius:8px;" loading="lazy" decoding="async" width="28" height="28">
+    </div>
     <div class="platform-card-text">
       <div class="platform-card-name">Markkundo</div>
       <div class="platform-card-desc">Grade & mark analysis</div>
