@@ -4105,10 +4105,10 @@ textarea {
 .dev-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 16, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 999999;
+  background: rgba(5, 8, 16, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4116,7 +4116,7 @@ textarea {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dev-modal-overlay.open {
@@ -4136,13 +4136,15 @@ textarea {
   overflow-y: auto;
   padding: 28px;
   position: relative;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
-  transform: scale(0.92) translateY(16px);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85);
+  transform: scale(0.92) translateY(18px);
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
 }
 
 .dev-modal-overlay.open .dev-modal-container {
   transform: scale(1) translateY(0);
+  opacity: 1;
 }
 
 .dev-modal-close-btn {
@@ -4400,22 +4402,25 @@ textarea {
 .dev-img-lightbox-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 14, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 100010;
+  background: rgba(4, 6, 14, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 1000100;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dev-img-lightbox-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  display: flex !important;
 }
 
 .dev-img-lightbox-content {
@@ -4426,12 +4431,14 @@ textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: scale(0.92);
-  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(0.88) translateY(18px);
+  opacity: 0;
+  transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
 }
 
 .dev-img-lightbox-overlay.open .dev-img-lightbox-content {
-  transform: scale(1);
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 
 .dev-img-lightbox-close {
