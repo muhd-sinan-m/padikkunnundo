@@ -972,6 +972,10 @@ textarea {
   background: #F5F3FF;
 }
 
+.platform-card-icon.mcq .platform-card-img {
+  border-radius: 8px;
+}
+
 .platform-card-icon.place {
   background: #ECFDF5;
 }
