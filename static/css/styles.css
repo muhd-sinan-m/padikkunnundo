@@ -86,6 +86,10 @@
   padding: 0;
 }
 
+img {
+  max-width: 100%;
+}
+
 html,
 body {
   height: 100%;
@@ -4822,12 +4826,17 @@ textarea {
 /* ── Full-Width Team Photo Showcase ────────────────────────────────────────── */
 .about-team-showcase {
   width: 100%;
+  max-width: 100%;
   margin-top: 36px;
   position: relative;
+  box-sizing: border-box;
 }
 
 .about-team-frame {
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(180deg, rgba(30, 41, 59, 0.45) 0%, rgba(11, 15, 25, 0.9) 100%), #0B0F19;
   border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-2xl, 24px);
@@ -4872,6 +4881,8 @@ textarea {
 .about-team-img-wrapper {
   position: relative;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   border-radius: var(--radius-xl, 18px);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -4880,6 +4891,7 @@ textarea {
 
 .about-team-photo {
   width: 100%;
+  max-width: 100%;
   height: auto;
   max-height: 520px;
   object-fit: cover;
@@ -4888,18 +4900,63 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .about-team-showcase {
+    margin-top: 24px;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .about-team-frame {
-    padding: 12px;
-    border-radius: var(--radius-xl, 18px);
+    padding: 10px;
+    border-radius: var(--radius-xl, 16px);
   }
+
   .about-team-header-bar {
-    padding-bottom: 10px;
+    padding-bottom: 8px;
   }
+
   .about-team-badge {
     font-size: 0.72rem;
   }
+
+  .about-team-img-wrapper {
+    border-radius: 12px;
+  }
+
   .about-team-photo {
-    max-height: 340px;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 240px;
+    object-fit: cover;
+    object-position: center center;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-team-showcase {
+    margin-top: 20px;
+  }
+
+  .about-team-frame {
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .about-team-header-bar {
+    padding-bottom: 6px;
+  }
+
+  .about-team-badge {
+    font-size: 0.68rem;
+  }
+
+  .about-team-img-wrapper {
+    border-radius: 10px;
+  }
+
+  .about-team-photo {
+    max-height: 180px;
   }
 }
 
@@ -5060,7 +5117,10 @@ textarea {
 
   .about-page {
     padding: 0 0 var(--spacing-xl);
-    margin: 5px;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .about-hero-image {
