@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for as flask_url_for
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from sqlalchemy import inspect
 
@@ -138,6 +138,18 @@ def create_app(config_class=Config) -> Flask:
                 "doubtundo": app.config.get("DOUBTUNDO_URL", ""),
             }
         }
+
+    @app.context_processor
+    def override_url_for():
+        def versioned_url_for(endpoint, **values):
+            if endpoint == "static":
+                filename = values.get("filename", None)
+                if filename:
+                    file_path = os.path.join(app.static_folder, filename)
+                    if os.path.exists(file_path):
+                        values["v"] = int(os.stat(file_path).st_mtime)
+            return flask_url_for(endpoint, **values)
+        return dict(url_for=versioned_url_for)
 
     def ensure_schema() -> None:
         inspector = inspect(db.engine)
