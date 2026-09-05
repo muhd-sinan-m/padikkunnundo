@@ -13,6 +13,7 @@
       role: "Platform Architect & Backend",
       theme: "theme-blue",
       initials: "MS",
+      image: "/static/img/sinan.webp",
       linkedin: "https://www.linkedin.com/in/muhammed-sinan-m/",
       sites: [
         { name: "Padikkunnundo", desc: "Main academic platform & student companion" },
@@ -27,6 +28,7 @@
       role: "ML Analytics & Performance",
       theme: "theme-cyan",
       initials: "AS",
+      image: "/static/img/akshara.webp",
       linkedin: "https://www.linkedin.com/in/akshara-suresh-40112b325/",
       sites: [
         { name: "Markkundo", desc: "Machine learning mark analytics & prediction portal" }
@@ -39,6 +41,7 @@
       role: "Interactive Lab Coding",
       theme: "theme-orange",
       initials: "DG",
+      image: "/static/img/daniel.webp",
       linkedin: "https://www.linkedin.com/in/daniel-george-vm/",
       sites: [
         { name: "Codeariyoo", desc: "Interactive programming playground & lab simulator" }
@@ -51,6 +54,7 @@
       role: "Quiz Practice Portals",
       theme: "theme-purple",
       initials: "JM",
+      image: null,
       linkedin: "https://www.linkedin.com/in/jerinmathew2526/",
       sites: [
         { name: "MCQ Portal", desc: "Dynamic objective quiz engine & instant evaluations" }
@@ -63,6 +67,7 @@
       role: "Resource Architecture",
       theme: "theme-pink",
       initials: "SG",
+      image: "/static/img/sebastian.webp",
       linkedin: "https://www.linkedin.com/in/sebastian-george-p-g-9023b8373/",
       sites: [
         { name: "Passavam", desc: "Essential exam topics, syllabus resources & quick guides" }
@@ -76,7 +81,6 @@
 
     const overlay = document.getElementById('dev-modal-overlay');
     const avatarWrap = document.getElementById('modal-dev-avatar-wrap');
-    const initialsEl = document.getElementById('modal-dev-initials');
     const numEl = document.getElementById('modal-dev-num');
     const nameEl = document.getElementById('modal-dev-name');
     const batchEl = document.getElementById('modal-dev-batch');
@@ -86,8 +90,14 @@
 
     if (!overlay) return;
 
-    if (avatarWrap) avatarWrap.className = 'dev-modal-avatar-wrapper ' + dev.theme;
-    if (initialsEl) initialsEl.textContent = dev.initials;
+    if (avatarWrap) {
+      avatarWrap.className = 'dev-modal-avatar-wrapper ' + dev.theme;
+      if (dev.image) {
+        avatarWrap.innerHTML = `<img src="${dev.image}" alt="Developer" class="dev-modal-avatar-img" />`;
+      } else {
+        avatarWrap.innerHTML = `<div class="dev-modal-avatar-fallback" id="modal-dev-initials">${dev.initials}</div>`;
+      }
+    }
     if (numEl) numEl.textContent = dev.number;
     if (nameEl) nameEl.innerHTML = dev.nameHtml;
     if (batchEl) batchEl.textContent = dev.batch;
