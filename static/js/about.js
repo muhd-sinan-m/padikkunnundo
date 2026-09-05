@@ -54,7 +54,7 @@
       role: "Quiz Practice Portals",
       theme: "theme-purple",
       initials: "JM",
-      image: null,
+      image: "/static/img/jerin.webp",
       linkedin: "https://www.linkedin.com/in/jerinmathew2526/",
       sites: [
         { name: "MCQ Portal", desc: "Dynamic objective quiz engine & instant evaluations" }
@@ -101,21 +101,23 @@
     }
   };
 
-  window.openAboutDevModal = function (key) {
-    const dev = developers[key];
+  window.openAboutDevModal = function (devKey) {
+    const dev = developers[devKey];
     if (!dev) return;
 
-    activeDevKey = key;
+    activeDevKey = devKey;
+
     const overlay = document.getElementById('dev-modal-overlay');
+    const container = document.getElementById('dev-modal-container');
     const avatarWrap = document.getElementById('modal-dev-avatar-wrap');
     const numEl = document.getElementById('modal-dev-num');
     const nameEl = document.getElementById('modal-dev-name');
     const batchEl = document.getElementById('modal-dev-batch');
     const roleEl = document.getElementById('modal-dev-role');
-    const sitesListEl = document.getElementById('modal-dev-sites');
     const linkedinEl = document.getElementById('modal-dev-linkedin');
+    const sitesListEl = document.getElementById('modal-dev-sites-list');
 
-    if (!overlay) return;
+    if (!overlay || !container) return;
 
     if (avatarWrap) {
       if (dev.image) {
@@ -191,12 +193,12 @@
         }
       }
 
-      // 4. Check if clicked a LinkedIn button inside card
+      // 5. Check if clicked a LinkedIn button inside card
       if (e.target.closest('.premium-linkedin-btn')) {
         return; // allow normal link click
       }
 
-      // 5. Check if clicked a contributor card
+      // 6. Check if clicked a contributor card
       const card = e.target.closest('.contributor-card[data-dev]');
       if (card) {
         e.preventDefault();
@@ -205,7 +207,7 @@
         return;
       }
 
-      // 6. Check if clicked modal close button
+      // 7. Check if clicked modal close button
       if (e.target.closest('#dev-modal-close') || e.target.closest('.dev-modal-close-btn')) {
         e.preventDefault();
         window.closeAboutDevModal();

@@ -208,7 +208,7 @@
         </div>
         <div class="card-profile-row">
           <div class="premium-avatar-wrapper">
-            <div class="premium-avatar-fallback">JM</div>
+            <img src="{{ url_for('static', filename='img/jerin.webp') }}" alt="Jerin Mathew" class="premium-avatar-img" loading="lazy">
           </div>
           <div class="card-profile-info">
             <h3 class="premium-member-name">Jerin <span class="premium-name-accent premium-name-accent-purple">Mathew</span></h3>
@@ -359,6 +359,20 @@
     <p class="pforp about-description">
       padikkunnundo.app wouldn't be what it is without the effort, ideas, and late nights from this team. Every feature, fix, and improvement has a piece of each of them in it. We built this for students like us — and it only became something worth using because of the people who cared enough to make it right. Grateful for every hour put in. 🙏
     </p>
+
+    <!-- ── Full-Width Team Photo Showcase ─────────────────────────────────── -->
+    <div class="about-team-showcase">
+      <div class="about-team-frame">
+        <div class="about-team-header-bar">
+          <div class="about-team-badge">
+            <span>The Team Behind Padikkunnundo</span>
+          </div>
+        </div>
+        <div class="about-team-img-wrapper" id="about-team-img-wrap">
+          <img src="{{ url_for('static', filename='img/team.webp') }}" alt="The Padikkunnundo Team" class="about-team-photo" loading="lazy" decoding="async">
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
