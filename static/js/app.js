@@ -186,21 +186,10 @@ function getGreeting(name) {
       return;
     }
 
-    let subbarHtml = '';
-    if (unreadCount > 0) {
-      subbarHtml = `
-        <div class="notice-panel-subbar">
-          <span class="notice-unread-indicator">
-            ${unreadCount} unread ${unreadCount === 1 ? 'notice' : 'notices'}
-          </span>
-          <button class="notice-mark-all-btn" id="mark-all-notices-read">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Mark all read
-          </button>
-        </div>`;
-    }
+    const unreadItems = items.filter(a => !a.is_read);
+    const readItems = items.filter(a => !!a.is_read);
 
-    const cardsHtml = items.map(a => {
+    function renderCard(a) {
       const date = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN', {
         day: 'numeric', month: 'short', year: 'numeric'
       }) : '';
@@ -220,9 +209,77 @@ function getGreeting(name) {
           <div class="notice-item-body">${escHtml(a.body)}</div>
           ${date ? `<div class="notice-item-date">${escHtml(date)}</div>` : ''}
         </div>`;
-    }).join('');
+    }
 
-    pane.innerHTML = subbarHtml + cardsHtml;
+    let subbarHtml = '';
+    if (unreadCount > 0) {
+      subbarHtml = `
+        <div class="notice-panel-subbar">
+          <span class="notice-unread-indicator">
+            ${unreadCount} unread ${unreadCount === 1 ? 'notice' : 'notices'}
+          </span>
+          <button class="notice-mark-all-btn" id="mark-all-notices-read">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark all read
+          </button>
+        </div>`;
+    }
+
+    let unreadHtml = '';
+    if (unreadItems.length > 0) {
+      unreadHtml = `<div class="unread-notices-list">${unreadItems.map(renderCard).join('')}</div>`;
+    } else if (items.length > 0) {
+      unreadHtml = `
+        <div class="notices-caught-up">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>All caught up! No unread notices.</span>
+        </div>`;
+    }
+
+    let readHtml = '';
+    if (readItems.length > 0) {
+      const isExpanded = !!window._readNoticesExpanded;
+      readHtml = `
+        <div class="read-notices-section">
+          <button class="read-notices-toggle ${isExpanded ? 'expanded' : ''}" id="toggle-read-notices" aria-expanded="${isExpanded}">
+            <div class="read-notices-toggle-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Read Messages (${readItems.length})</span>
+            </div>
+            <div class="read-notices-toggle-right">
+              <span class="read-toggle-hint">${isExpanded ? 'Hide' : 'View'}</span>
+              <svg class="read-notices-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </button>
+          <div class="read-notices-list ${isExpanded ? 'open' : ''}" id="read-notices-list">
+            ${readItems.map(renderCard).join('')}
+          </div>
+        </div>`;
+    }
+
+    pane.innerHTML = subbarHtml + unreadHtml + readHtml;
+
+    // Attach listener for toggle read notices
+    const toggleReadBtn = document.getElementById('toggle-read-notices');
+    if (toggleReadBtn) {
+      toggleReadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window._readNoticesExpanded = !window._readNoticesExpanded;
+        const readList = document.getElementById('read-notices-list');
+        const hint = toggleReadBtn.querySelector('.read-toggle-hint');
+        if (window._readNoticesExpanded) {
+          toggleReadBtn.classList.add('expanded');
+          toggleReadBtn.setAttribute('aria-expanded', 'true');
+          if (readList) readList.classList.add('open');
+          if (hint) hint.textContent = 'Hide';
+        } else {
+          toggleReadBtn.classList.remove('expanded');
+          toggleReadBtn.setAttribute('aria-expanded', 'false');
+          if (readList) readList.classList.remove('open');
+          if (hint) hint.textContent = 'View';
+        }
+      });
+    }
 
     // Attach listener for mark all as read
     const markAllBtn = document.getElementById('mark-all-notices-read');

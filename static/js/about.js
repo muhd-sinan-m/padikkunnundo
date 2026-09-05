@@ -9,7 +9,7 @@
     sinan: {
       number: "01 / Lead Developer",
       nameHtml: 'Muhammed <span class="premium-name-accent premium-name-accent-blue">Sinan</span>',
-      batch: "BCA - A (2024 - 28)",
+      batch: "BCA - A &nbsp;(2024 - 28)",
       role: "Platform Architect & Backend",
       theme: "theme-blue",
       initials: "MS",
@@ -24,7 +24,7 @@
     akshara: {
       number: "02 / Developer",
       nameHtml: 'Akshara <span class="premium-name-accent premium-name-accent-cyan">Suresh</span>',
-      batch: "BCA - A (2024 - 28)",
+      batch: "BCA - A &nbsp;(2024 - 28)",
       role: "ML Analytics & Performance",
       theme: "theme-cyan",
       initials: "AS",
@@ -37,7 +37,7 @@
     daniel: {
       number: "03 / Developer",
       nameHtml: 'Daniel <span class="premium-name-accent premium-name-accent-orange">George</span>',
-      batch: "BCA - A (2024 - 28)",
+      batch: "BCA - A &nbsp;(2024 - 28)",
       role: "Interactive Lab Coding",
       theme: "theme-orange",
       initials: "DG",
@@ -50,7 +50,7 @@
     jerin: {
       number: "04 / Developer",
       nameHtml: 'Jerin <span class="premium-name-accent premium-name-accent-purple">Mathew</span>',
-      batch: "BCA - A (2024 - 28)",
+      batch: "BCA - A &nbsp;(2024 - 28)",
       role: "Quiz Practice Portals",
       theme: "theme-purple",
       initials: "JM",
@@ -63,7 +63,7 @@
     sebastian: {
       number: "05 / Developer",
       nameHtml: 'Sebastian <span class="premium-name-accent premium-name-accent-pink">George</span>',
-      batch: "BCA - A (2025 - 28)",
+      batch: "BCA - A &nbsp;(2025 - 29)",
       role: "Resource Architecture",
       theme: "theme-pink",
       initials: "SG",
@@ -130,7 +130,7 @@
     }
     if (numEl) numEl.textContent = dev.number;
     if (nameEl) nameEl.innerHTML = dev.nameHtml;
-    if (batchEl) batchEl.textContent = dev.batch;
+    if (batchEl) batchEl.innerHTML = dev.batch;
     if (roleEl) roleEl.textContent = dev.role;
     if (linkedinEl) linkedinEl.href = dev.linkedin;
 
@@ -147,7 +147,6 @@
 
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
   };
 
   window.closeAboutDevModal = function () {
@@ -157,7 +156,6 @@
       overlay.classList.remove('open');
       overlay.setAttribute('aria-hidden', 'true');
     }
-    document.body.style.overflow = '';
   };
 
   // Global document click listener (event delegation) - works across all navigations
