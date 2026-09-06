@@ -75,7 +75,9 @@
     }
   };
 
-  let activeDevKey = null;
+  // Expose developers dictionary globally so all handlers share the same source of truth
+  window._aboutDevelopers = developers;
+  window._aboutActiveDevKey = window._aboutActiveDevKey || null;
 
   window.openDevImageLightbox = function (src, theme, name) {
     const lightbox = document.getElementById('dev-img-lightbox');
@@ -102,10 +104,11 @@
   };
 
   window.openAboutDevModal = function (devKey) {
-    const dev = developers[devKey];
+    const devList = window._aboutDevelopers || developers;
+    const dev = devList[devKey];
     if (!dev) return;
 
-    activeDevKey = devKey;
+    window._aboutActiveDevKey = devKey;
 
     const overlay = document.getElementById('dev-modal-overlay');
     const container = document.getElementById('dev-modal-container');
@@ -115,14 +118,17 @@
     const batchEl = document.getElementById('modal-dev-batch');
     const roleEl = document.getElementById('modal-dev-role');
     const linkedinEl = document.getElementById('modal-dev-linkedin');
-    const sitesListEl = document.getElementById('modal-dev-sites-list');
+    const sitesListEl = document.getElementById('modal-dev-sites') || document.getElementById('modal-dev-sites-list');
 
     if (!overlay || !container) return;
 
+    overlay.setAttribute('data-dev', devKey);
+
     if (avatarWrap) {
+      avatarWrap.setAttribute('data-dev', devKey);
       if (dev.image) {
         avatarWrap.className = 'dev-modal-avatar-wrapper has-image ' + dev.theme;
-        avatarWrap.innerHTML = `<img src="${dev.image}" alt="Developer" class="dev-modal-avatar-img" />`;
+        avatarWrap.innerHTML = `<img src="${dev.image}" alt="${devKey}" class="dev-modal-avatar-img" />`;
         avatarWrap.setAttribute('title', 'Tap to view full image');
       } else {
         avatarWrap.className = 'dev-modal-avatar-wrapper ' + dev.theme;
@@ -137,7 +143,7 @@
     if (linkedinEl) linkedinEl.href = dev.linkedin;
 
     if (sitesListEl) {
-      sitesListEl.innerHTML = dev.sites.map(s => `
+      sitesListEl.innerHTML = (dev.sites || []).map(s => `
         <div class="dev-modal-site-card">
           <div class="dev-modal-site-meta">
             <div class="dev-modal-site-name">${s.name}</div>
@@ -153,10 +159,16 @@
 
   window.closeAboutDevModal = function () {
     window.closeDevImageLightbox();
+    window._aboutActiveDevKey = null;
     const overlay = document.getElementById('dev-modal-overlay');
     if (overlay) {
       overlay.classList.remove('open');
       overlay.setAttribute('aria-hidden', 'true');
+      overlay.removeAttribute('data-dev');
+    }
+    const avatarWrap = document.getElementById('modal-dev-avatar-wrap');
+    if (avatarWrap) {
+      avatarWrap.removeAttribute('data-dev');
     }
   };
 
@@ -182,8 +194,13 @@
 
       // 3. Check if clicked avatar inside modal to open lightbox
       const avatarInModal = e.target.closest('#modal-dev-avatar-wrap.has-image');
-      if (avatarInModal && activeDevKey) {
-        const dev = developers[activeDevKey];
+      if (avatarInModal) {
+        const overlay = document.getElementById('dev-modal-overlay');
+        const devKey = avatarInModal.getAttribute('data-dev') || 
+                       (overlay ? overlay.getAttribute('data-dev') : null) || 
+                       window._aboutActiveDevKey;
+        const devMap = window._aboutDevelopers || developers;
+        const dev = devKey ? devMap[devKey] : null;
         if (dev && dev.image) {
           e.preventDefault();
           e.stopPropagation();
@@ -193,21 +210,23 @@
         }
       }
 
-      // 5. Check if clicked a LinkedIn button inside card
+      // 4. Check if clicked a LinkedIn button inside card
       if (e.target.closest('.premium-linkedin-btn')) {
         return; // allow normal link click
       }
 
-      // 6. Check if clicked a contributor card
+      // 5. Check if clicked a contributor card
       const card = e.target.closest('.contributor-card[data-dev]');
       if (card) {
         e.preventDefault();
         const key = card.getAttribute('data-dev');
-        window.openAboutDevModal(key);
+        if (typeof window.openAboutDevModal === 'function') {
+          window.openAboutDevModal(key);
+        }
         return;
       }
 
-      // 7. Check if clicked modal close button
+      // 6. Check if clicked modal close button
       if (e.target.closest('#dev-modal-close') || e.target.closest('.dev-modal-close-btn')) {
         e.preventDefault();
         window.closeAboutDevModal();
@@ -241,7 +260,9 @@
         if (card) {
           e.preventDefault();
           const key = card.getAttribute('data-dev');
-          window.openAboutDevModal(key);
+          if (typeof window.openAboutDevModal === 'function') {
+            window.openAboutDevModal(key);
+          }
         }
       }
     });

@@ -264,13 +264,19 @@ textarea {
   right: 16px;
   width: 36px;
   height: 36px;
+  padding: 0;
   border: none;
   background: rgba(255, 255, 255, .1);
   border-radius: 50%;
+  -webkit-border-radius: 50%;
   color: #fff;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
   z-index: 10;
   transition: background var(--transition);
 }
@@ -1085,14 +1091,20 @@ textarea {
 .close-btn {
   width: 36px;
   height: 36px;
+  padding: 0;
   border: none;
   background: var(--gray-100);
   border-radius: 50%;
+  -webkit-border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--gray-500);
   cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
   transition: background var(--transition);
 }
 
@@ -4420,7 +4432,10 @@ textarea {
   right: 16px;
   width: 36px;
   height: 36px;
+  padding: 0;
+  margin: 0;
   border-radius: 50%;
+  -webkit-border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--gray-300);
@@ -4428,8 +4443,13 @@ textarea {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.08s ease;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   z-index: 10;
+  overflow: hidden;
 }
 
 .dev-modal-close-btn:hover {
@@ -4443,6 +4463,11 @@ textarea {
 .dev-modal-close-btn:active {
   transform: scale(0.92);
   background: rgba(239, 68, 68, 0.35);
+}
+
+.dev-modal-close-btn:focus-visible {
+  outline: 2px solid rgba(239, 68, 68, 0.6);
+  outline-offset: 2px;
 }
 
 .dev-modal-top {
@@ -4721,7 +4746,10 @@ textarea {
   right: -6px;
   width: 38px;
   height: 38px;
+  padding: 0;
+  margin: 0;
   border-radius: 50%;
+  -webkit-border-radius: 50%;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
@@ -4729,8 +4757,13 @@ textarea {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.08s ease;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   z-index: 2;
+  overflow: hidden;
 }
 
 .dev-img-lightbox-close:hover {
@@ -4744,6 +4777,11 @@ textarea {
 .dev-img-lightbox-close:active {
   transform: scale(0.92);
   background: rgba(239, 68, 68, 0.4);
+}
+
+.dev-img-lightbox-close:focus-visible {
+  outline: 2px solid rgba(239, 68, 68, 0.6);
+  outline-offset: 2px;
 }
 
 .dev-img-lightbox-frame {
