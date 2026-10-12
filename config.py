@@ -9,9 +9,13 @@ INSTANCE_DIR.mkdir(exist_ok=True)
 class Config:
     SECRET_KEY: str = os.environ.get("SECRET_KEY", "")
 
-    SQLALCHEMY_DATABASE_URI: str = os.environ.get(
+    _raw_db_url: str = os.environ.get(
         "DATABASE_URL", f"sqlite:///{INSTANCE_DIR / 'padikkunnundo.db'}"
     )
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+
+    SQLALCHEMY_DATABASE_URI: str = _raw_db_url
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     SQLALCHEMY_ENGINE_OPTIONS: dict = {
         "pool_size": 10,
