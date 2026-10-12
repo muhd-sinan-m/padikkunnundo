@@ -9,7 +9,7 @@ Every grading rule implemented in this codebase traces back directly to the PRD 
 
 ## What it does
 
-- **A+ Grade Calculator** — tells a student exactly how many marks they need in SEA2 to reach A+, A, B+, or Pass, based on CCA and SEA1 marks already secured.
+- **A+ Grade Calculator** — tells a student exactly how many marks they need in SEA2 to reach A+, A, or B+, based on CCA and SEA1 marks already secured.
 - **Focus Priority** — ranks enrolled subjects by urgency so students know where to spend limited study time before SEA2.
 - **Exam Schedule** — upcoming SEA1/SEA2 dates with a day-countdown; exams within 7 days are flagged urgent.
 - **Important Topics** — admin-curated topic lists per subject, each linking directly to PYQPortal.
@@ -121,6 +121,6 @@ padikkunnundo/
 | 3      | 75    | 7.5 | 7.5| 7.5| 7.5| 15  | 30   |
 | 2      | 50    | 5   | 5  | 5  | 5  | 10   | 20   |
 
-Grade thresholds: **A+ = 90%**, **A = 80%**, **B+ = 70%**, **Pass = 40%** of total.
+Grade thresholds: **A+ = 90%**, **A = 80%**, **B+ = 70%** of total.
 
 SEA2 needed = (Total × Grade%) − Secured So Far (ISA + CP + LB + LD + SEA1)

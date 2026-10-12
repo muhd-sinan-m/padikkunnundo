@@ -6,6 +6,8 @@
  * SEA2 requirement for every grade instantly.
  *
  * Uses the same Section 3.4 formula as marks.js and the server.
+ *
+ * Cache revision: 20261012
  */
 
 (async function initCalculator() {
@@ -114,8 +116,8 @@ function computeGradesCalc(secured, struct) {
   const total   = struct.total;
   const sea2Max = struct.sea2;
 
-  const thresholds = { 'A+': 0.90, 'A': 0.80, 'B+': 0.70, 'Pass': 0.40 };
-  const order      = ['A+', 'A', 'B+', 'Pass'];
+  const thresholds = { 'A+': 0.90, 'A': 0.80, 'B+': 0.70 };
+  const order      = ['A+', 'A', 'B+'];
 
   const result = {};
   order.forEach(grade => {
@@ -171,9 +173,9 @@ function renderCalcResults(grades) {
     subEl.textContent  = '';
   }
 
-  // Secondary grade pills.
+  // Secondary grade pills: A, B+
   pillsEl.style.display = '';
-  pillsEl.innerHTML = ['A', 'B+', 'Pass'].map(grade => {
+  pillsEl.innerHTML = ['A', 'B+'].map(grade => {
     const g = grades[grade];
     let text;
     if (g.status === 'secured')          text = `${grade}: secured`;

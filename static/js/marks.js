@@ -15,6 +15,7 @@
  *   • Secondary pills show requirements for A and B+ only (no Pass).
  *   • A PYQPortal link is placed on each card (Section 7.2).
  *
+ * Cache revision: 20261012
  * NOTE: Wrapped in an IIFE so that const/let declarations do not throw
  * on re-execution during client-side navigation (nav.js swaps the
  * #main-content and re-evaluates page scripts).

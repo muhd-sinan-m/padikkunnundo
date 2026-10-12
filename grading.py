@@ -34,11 +34,10 @@ GRADE_THRESHOLDS: dict[str, float] = {
     "A+":   0.90,
     "A":    0.80,
     "B+":   0.70,
-    "Pass": 0.40,
 }
 
 # Order matters for display: best grade first.
-GRADE_ORDER: list[str] = ["A+", "A", "B+", "Pass"]
+GRADE_ORDER: list[str] = ["A+", "A", "B+"]
 
 # ── Section 3.5: Focus Priority / Difficulty Classification ──────────────────
 # Percentage = SEA2 marks needed ÷ SEA2 maximum.
