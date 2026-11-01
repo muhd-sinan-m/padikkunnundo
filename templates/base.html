@@ -9,6 +9,26 @@
   <title>{% block title %}padikkunnundo.app{% endblock %}</title>
   <meta name="description"
     content="{% block description %}Personal academic companion for Marian College Kuttikkanam students.{% endblock %}">
+  {% block og %}
+  <!-- Open Graph / WhatsApp / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="padikkunnundo.app">
+  <meta property="og:title" content="{% block og_title %}padikkunnundo.app — Personal Academic Companion{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Personal academic companion for Marian College Kuttikkanam students.{% endblock %}">
+  <meta property="og:url" content="{{ request.base_url }}">
+  <meta property="og:image" content="{{ url_for('static', filename='img/dashboard_logo.webp', _external=True) }}">
+  <meta property="og:image:secure_url" content="{{ url_for('static', filename='img/dashboard_logo.webp', _external=True) }}">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="padikkunnundo.app">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{% block twitter_title %}padikkunnundo.app — Personal Academic Companion{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Personal academic companion for Marian College Kuttikkanam students.{% endblock %}">
+  <meta name="twitter:image" content="{{ url_for('static', filename='img/dashboard_logo.webp', _external=True) }}">
+  {% endblock %}
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">

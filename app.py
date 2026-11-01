@@ -12,7 +12,7 @@ from config import Config
 from models import db
 from routes import api_bp, auth_bp, pages_bp
 from routes.admin import admin_bp
-from routes.auth import init_oauth, limiter
+from routes.auth import init_oauth, limiter, is_social_crawler
 
 
 def create_app(config_class=Config) -> Flask:
@@ -46,6 +46,15 @@ def create_app(config_class=Config) -> Flask:
         if request.accept_mimetypes.accept_json:
             return jsonify({"error": "CSRF token missing or invalid."}), 400
         return "CSRF token missing or invalid.", 400
+
+    @app.errorhandler(401)
+    def unauthorized(e):
+        if request.path.startswith("/api/") or request.is_json or (
+            request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html
+        ):
+            return jsonify({"error": "Authentication required."}), 401
+        status = 200 if (is_social_crawler() and request.method == "GET") else 401
+        return render_template("auth_required.html"), status
 
     @app.errorhandler(403)
     def forbidden(e):

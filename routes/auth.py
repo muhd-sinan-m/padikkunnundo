@@ -152,13 +152,36 @@ def get_current_user() -> User | None:
     return None
 
 
+def is_social_crawler() -> bool:
+    ua = request.headers.get("User-Agent", "").lower()
+    crawlers = (
+        "facebookexternalhit",
+        "whatsapp",
+        "twitterbot",
+        "telegrambot",
+        "linkedinbot",
+        "slackbot",
+        "discordbot",
+        "meta-externalagent",
+    )
+    return any(c in ua for c in crawlers)
+
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         user = get_current_user()
         if user is None:
-            if request.accept_mimetypes.accept_json:
+            if request.path.startswith("/api/") or request.is_json or (
+                request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html
+            ):
                 return jsonify({"error": "Authentication required."}), 401
+            # Social media preview crawlers (WhatsApp, Facebook, etc.) require HTTP 200
+            # to parse Open Graph tags for link previews when shared in chats.
+            if is_social_crawler() and request.method == "GET":
+                return render_template("auth_required.html"), 200
+            if request.accept_mimetypes.accept_html:
+                return render_template("auth_required.html"), 401
             return redirect(url_for("pages.login"))
         return f(*args, **kwargs)
     return decorated
