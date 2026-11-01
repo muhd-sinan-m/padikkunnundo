@@ -8,7 +8,7 @@ from flask import Blueprint, abort, flash, jsonify, redirect, render_template, r
 from sqlalchemy import func, case
 from sqlalchemy.orm import joinedload
 
-from models import Announcement, AnnouncementRead, Enrollment, Mark, Subject, User, db
+from models import Announcement, AnnouncementRead, Enrollment, Feedback, Mark, Subject, User, db
 from routes.auth import get_current_user, login_required
 from grading import compute_grade_requirements, get_mark_structure
 
@@ -552,6 +552,49 @@ def admin_announcement_delete(id: int):
 
     flash("Announcement deleted.", "success")
     return redirect(url_for("admin.admin_announcements_list"))
+
+
+@admin_bp.route("/feedback")
+@login_required
+@admin_required
+def admin_feedback_list():
+    user = get_current_user()
+    feedbacks = (
+        Feedback.query.options(joinedload(Feedback.user))
+        .order_by(Feedback.created_at.desc())
+        .all()
+    )
+    total_count = len(feedbacks)
+    avg_rating = round(sum(f.rating for f in feedbacks) / total_count, 1) if total_count > 0 else 0.0
+
+    rating_counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+    for f in feedbacks:
+        if f.rating in rating_counts:
+            rating_counts[f.rating] += 1
+
+    return render_template(
+        "admin.html",
+        section="feedback",
+        user=user,
+        feedbacks=feedbacks,
+        total_count=total_count,
+        avg_rating=avg_rating,
+        rating_counts=rating_counts,
+    )
+
+
+@admin_bp.route("/feedback/<int:feedback_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_feedback_delete(feedback_id: int):
+    fb = db.session.get(Feedback, feedback_id)
+    if fb:
+        db.session.delete(fb)
+        db.session.commit()
+        flash("Feedback entry removed successfully.", "success")
+    else:
+        flash("Feedback not found.", "error")
+    return redirect(url_for("admin.admin_feedback_list"))
 
 
 @admin_bp.route("/users/<int:user_id>/electives", methods=["GET", "POST"])

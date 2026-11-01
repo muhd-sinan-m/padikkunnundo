@@ -163,6 +163,12 @@ def create_app(config_class=Config) -> Flask:
                 except Exception:
                     pass
 
+            if "feedbacks" not in tables:
+                try:
+                    db.create_all()
+                except Exception:
+                    pass
+
             # Check for newly added columns on existing users table
             user_columns = {c["name"] for c in inspector.get_columns("users")}
             if "is_blocked" not in user_columns:
@@ -192,6 +198,8 @@ def create_app(config_class=Config) -> Flask:
             "CREATE INDEX IF NOT EXISTS ix_users_created_at ON users (created_at);",
             "CREATE INDEX IF NOT EXISTS ix_users_reset_token_hash ON users (reset_token_hash);",
             "CREATE INDEX IF NOT EXISTS ix_users_is_blocked ON users (is_blocked);",
+            "CREATE INDEX IF NOT EXISTS ix_feedbacks_user_id ON feedbacks (user_id);",
+            "CREATE INDEX IF NOT EXISTS ix_feedbacks_created_at ON feedbacks (created_at);",
         ]
         for stmt in index_statements:
             try:
@@ -208,6 +216,7 @@ def create_app(config_class=Config) -> Flask:
                 ("marks", "id"),
                 ("announcements", "id"),
                 ("announcement_reads", "id"),
+                ("feedbacks", "id"),
             ]:
                 try:
                     db.session.execute(db.text(

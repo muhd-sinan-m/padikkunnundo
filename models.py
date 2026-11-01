@@ -25,6 +25,7 @@ class User(db.Model):
 
     enrollments = db.relationship("Enrollment", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
     marks = db.relationship("Mark", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
+    feedbacks = db.relationship("Feedback", back_populates="user", cascade="all, delete-orphan", lazy="dynamic")
 
     def to_dict(self) -> dict:
         return {
@@ -157,4 +158,30 @@ class AnnouncementRead(db.Model):
         db.UniqueConstraint("user_id", "announcement_id", name="uq_user_announcement_read"),
         db.Index("ix_announcement_reads_user_announcement", "user_id", "announcement_id"),
     )
+
+
+class Feedback(db.Model):
+    __tablename__ = "feedbacks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False)
+    student_class = db.Column(db.String(100), nullable=True)
+    rating = db.Column(db.Integer, nullable=False)
+    feedback_text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    user = db.relationship("User", back_populates="feedbacks")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "student_class": self.student_class,
+            "rating": self.rating,
+            "feedback_text": self.feedback_text,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
 

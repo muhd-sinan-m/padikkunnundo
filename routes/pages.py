@@ -1,8 +1,10 @@
+from datetime import datetime
 import time
 from urllib.parse import quote
 import jwt
-from flask import Blueprint, current_app, redirect, render_template, request as flask_request, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request as flask_request, url_for
 
+from models import Feedback, db
 from routes.auth import get_current_user, login_required, _create_sso_jwt
 
 pages_bp = Blueprint("pages", __name__)
@@ -139,3 +141,89 @@ def go_to_mcq():
         target += f"&next={quote(next_path, safe='')}"
 
     return redirect(target)
+
+
+@pages_bp.route("/feedback", methods=["GET", "POST"])
+@login_required
+def feedback():
+    user = get_current_user()
+    if not user.is_onboarded:
+        return _onboarding_redirect()
+
+    # Determine class representation
+    if user.course and user.semester:
+        user_class = f"{user.course} - Sem {user.semester}"
+    elif user.semester:
+        user_class = f"Semester {user.semester}"
+    elif user.course:
+        user_class = user.course
+    else:
+        user_class = "Student"
+
+    if flask_request.method == "POST":
+        if flask_request.is_json:
+            data = flask_request.get_json() or {}
+            rating_raw = data.get("rating")
+            feedback_text = (data.get("feedback") or "").strip()
+        else:
+            rating_raw = flask_request.form.get("rating")
+            feedback_text = (flask_request.form.get("feedback") or "").strip()
+
+        # Validate rating
+        try:
+            rating = int(rating_raw)
+            if rating < 1 or rating > 5:
+                raise ValueError()
+        except (TypeError, ValueError):
+            if flask_request.is_json:
+                return jsonify({"error": "Please provide a star rating between 1 and 5."}), 400
+            flash("Please select a rating between 1 and 5 stars.", "error")
+            return render_template(
+                "feedback.html",
+                user=user,
+                user_class=user_class,
+                submitted=False,
+                error="Please select a rating between 1 and 5 stars.",
+            ), 400
+
+        # Validate feedback text
+        if not feedback_text or len(feedback_text) < 3:
+            if flask_request.is_json:
+                return jsonify({"error": "Please enter your feedback before submitting."}), 400
+            flash("Please enter your feedback before submitting.", "error")
+            return render_template(
+                "feedback.html",
+                user=user,
+                user_class=user_class,
+                submitted=False,
+                selected_rating=rating,
+                error="Please enter your feedback before submitting.",
+            ), 400
+
+        # Save feedback record with user_id, name, class, star rating, feedback text
+        entry = Feedback(
+            user_id=user.id,
+            name=user.name,
+            student_class=user_class,
+            rating=rating,
+            feedback_text=feedback_text,
+            created_at=datetime.utcnow(),
+        )
+        db.session.add(entry)
+        db.session.commit()
+
+        if flask_request.is_json:
+            return jsonify({"success": True, "message": "Thank you for your feedback!"}), 200
+
+        flash("Thank you! Your feedback has been submitted successfully.", "success")
+        return redirect(url_for("pages.feedback", submitted="1"))
+
+    # GET request
+    submitted = flask_request.args.get("submitted") == "1"
+    return render_template(
+        "feedback.html",
+        user=user,
+        user_class=user_class,
+        submitted=submitted,
+    )
+

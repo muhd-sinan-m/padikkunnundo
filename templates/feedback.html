@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback — padikkunnundo.app{% endblock %}
+{% block description %}Share your thoughts and rate your experience to help us improve padikkunnundo.app.{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Premium Clean Feedback Styling (No Colored Pills, No Dot Circles) ── */
+  .feedback-wrapper {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .feedback-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    padding: clamp(24px, 5vw, 40px);
+    transition: box-shadow var(--transition);
+  }
+
+  /* Header & Thank You Title */
+  .feedback-header-box {
+    text-align: center;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .feedback-thankyou-heading {
+    font-size: clamp(24px, 4vw, 32px);
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .feedback-subheading {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto 16px auto;
+    line-height: 1.55;
+  }
+
+  /* User identity bar — clean & subtle, no colored pills */
+  .feedback-user-identity {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--gray-50);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    color: var(--gray-700);
+  }
+
+  .feedback-user-name {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .feedback-user-divider {
+    color: var(--gray-300);
+    font-weight: 400;
+  }
+
+  .feedback-user-class {
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  /* Form Fields */
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .feedback-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .feedback-field-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .feedback-field-required {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  /* ── Interactive Premium SVG Star Rating ── */
+  .star-rating-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    background: var(--gray-50);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: border-color var(--transition);
+  }
+
+  .star-rating-container:hover {
+    border-color: var(--gray-300);
+  }
+
+  .star-rating-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    direction: ltr;
+  }
+
+  .star-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--gray-300);
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .star-btn:focus-visible {
+    box-shadow: 0 0 0 2px var(--primary-blue);
+  }
+
+  .star-btn:hover {
+    transform: scale(1.15);
+  }
+
+  .star-btn:active {
+    transform: scale(0.95);
+  }
+
+  .star-svg {
+    width: 38px;
+    height: 38px;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    fill: none;
+    transition: fill 0.18s ease, stroke 0.18s ease;
+  }
+
+  /* Active / Filled state */
+  .star-btn.active,
+  .star-btn.hover-active {
+    color: #F59E0B;
+  }
+
+  .star-btn.active .star-svg,
+  .star-btn.hover-active .star-svg {
+    fill: #F59E0B;
+    stroke: #D97706;
+  }
+
+  .star-status-caption {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-height: 20px;
+    text-align: center;
+    transition: color var(--transition);
+  }
+
+  .star-status-caption.has-rating {
+    color: var(--text-primary);
+  }
+
+  /* ── Clean Textarea ── */
+  .feedback-textarea-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .feedback-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: #FFFFFF;
+    resize: vertical;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .feedback-textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  }
+
+  .feedback-textarea::placeholder {
+    color: var(--gray-400);
+  }
+
+  .feedback-textarea-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 0 2px;
+  }
+
+  /* ── Submit Button ── */
+  .feedback-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 24px;
+    background: #0F172A;
+    color: #FFFFFF;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    margin-top: 6px;
+  }
+
+  .feedback-submit-btn:hover:not(:disabled) {
+    background: #1E293B;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  }
+
+  .feedback-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .feedback-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  /* ── Thank You Success Screen ── */
+  .feedback-success-card {
+    text-align: center;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .feedback-success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+  }
+
+  .feedback-success-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.4px;
+  }
+
+  .feedback-success-desc {
+    font-size: 14.5px;
+    color: var(--text-secondary);
+    max-width: 460px;
+    line-height: 1.6;
+    margin: 0 auto;
+  }
+
+  .feedback-success-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .feedback-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #FFFFFF;
+    color: var(--text-primary);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all var(--transition);
+  }
+
+  .feedback-btn-secondary:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+  }
+
+  .feedback-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #0F172A;
+    color: #FFFFFF;
+    border: 1.5px solid #0F172A;
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    font-weight: 700;
+    transition: all var(--transition);
+  }
+
+  .feedback-btn-primary:hover {
+    background: #1E293B;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 640px) {
+    .feedback-wrapper {
+      padding: var(--spacing-sm);
+    }
+    .feedback-card {
+      padding: 22px 18px;
+      border-radius: var(--radius-lg);
+    }
+    .star-svg {
+      width: 32px;
+      height: 32px;
+    }
+    .star-btn {
+      padding: 4px;
+    }
+    .feedback-success-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    .feedback-btn-secondary,
+    .feedback-btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feedback-wrapper">
+  <div class="feedback-card">
+
+    {% if submitted %}
+    <!-- ── Thank You Confirmation State ── -->
+    <div class="feedback-success-card">
+      <div class="feedback-success-icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h1 class="feedback-success-title">Thank You</h1>
+      <p class="feedback-success-desc">
+        Your feedback has been received and recorded. We genuinely appreciate your time and perspective in helping us refine and improve padikkunnundo.app.
+      </p>
+
+      <div class="feedback-success-actions">
+        <a href="{{ url_for('pages.feedback') }}" class="feedback-btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.5 2v6h6M21.5 22v-6h-6"></path>
+            <path d="M22 11.5A10 10 0 0 0 3.2 7.2L2.5 8M2 12.5a10 10 0 0 0 18.8 4.3l.7-.8"></path>
+          </svg>
+          Submit another response
+        </a>
+        <a href="{{ url_for('pages.dashboard') }}" class="feedback-btn-primary">
+          Return to Dashboard
+        </a>
+      </div>
+    </div>
+
+    {% else %}
+
+    <!-- ── Form Header: Thank You in Neat Format ── -->
+    <div class="feedback-header-box">
+      <h1 class="feedback-thankyou-heading">Thank You</h1>
+      <p class="feedback-subheading">
+        Thank you for being part of our community. Please let us know your experience and how we can make the app better for you.
+      </p>
+
+      <div class="feedback-user-identity" title="Your verified student session">
+        <span class="feedback-user-name">{{ user.name }}</span>
+        <span class="feedback-user-divider">|</span>
+        <span class="feedback-user-class">{{ user_class }}</span>
+      </div>
+    </div>
+
+    <!-- ── Feedback Form with the 2 Fields ── -->
+    <form id="feedback-form" method="POST" action="{{ url_for('pages.feedback') }}" class="feedback-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="rating" id="rating-input" value="{{ selected_rating or '' }}" required>
+
+      <!-- Field 1: Star Rating (up to 5 stars in premium SVG) -->
+      <div class="feedback-form-group">
+        <div class="feedback-field-label">
+          <span id="star-rating-label">Overall Experience</span>
+          <span class="feedback-field-required">Required</span>
+        </div>
+
+        <div class="star-rating-container">
+          <div class="star-rating-row" role="radiogroup" aria-labelledby="star-rating-label">
+            {% for i in range(1, 6) %}
+            <button
+              type="button"
+              class="star-btn {% if selected_rating and selected_rating >= i %}active{% endif %}"
+              data-rating="{{ i }}"
+              role="radio"
+              aria-checked="{% if selected_rating and selected_rating == i %}true{% else %}false{% endif %}"
+              aria-label="{{ i }} of 5 stars"
+              tabindex="0">
+              <svg class="star-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            </button>
+            {% endfor %}
+          </div>
+          <div class="star-status-caption" id="star-status-caption">
+            {% if selected_rating %}
+              {{ selected_rating }} Star{% if selected_rating > 1 %}s{% endif %} selected
+            {% else %}
+              Select a star rating
+            {% endif %}
+          </div>
+        </div>
+        <div id="rating-error-msg" style="display:none;font-size:12px;color:var(--accent-red);font-weight:600;margin-top:2px;">
+          Please select a star rating between 1 and 5.
+        </div>
+      </div>
+
+      <!-- Field 2: Textarea for feedback -->
+      <div class="feedback-form-group">
+        <div class="feedback-field-label">
+          <label for="feedback-text">Feedback Message</label>
+          <span class="feedback-field-required">Required</span>
+        </div>
+
+        <div class="feedback-textarea-wrap">
+          <textarea
+            name="feedback"
+            id="feedback-text"
+            class="feedback-textarea"
+            rows="5"
+            required
+            minlength="3"
+            maxlength="2000"
+            placeholder="Share your thoughts, suggestions, or what you feel could be improved..."
+            aria-describedby="feedback-hint"></textarea>
+
+          <div class="feedback-textarea-footer">
+            <span id="feedback-hint">Please share your honest perspective</span>
+            <span id="char-counter">0 / 2000</span>
+          </div>
+          <div id="feedback-error-msg" style="display:none;font-size:12px;color:var(--accent-red);font-weight:600;margin-top:2px;">
+            Please enter your feedback message (at least 3 characters).
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Action -->
+      <button type="submit" class="feedback-submit-btn" id="feedback-submit-btn">
+        <span>Submit Feedback</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+
+    </form>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    const form = document.getElementById('feedback-form');
+    if (!form) return;
+
+    const starBtns = Array.from(document.querySelectorAll('.star-btn'));
+    const ratingInput = document.getElementById('rating-input');
+    const statusCaption = document.getElementById('star-status-caption');
+    const textarea = document.getElementById('feedback-text');
+    const charCounter = document.getElementById('char-counter');
+    const ratingError = document.getElementById('rating-error-msg');
+    const feedbackError = document.getElementById('feedback-error-msg');
+    const submitBtn = document.getElementById('feedback-submit-btn');
+
+    const ratingDescriptions = {
+      1: "1 Star — Needs Improvement",
+      2: "2 Stars — Fair",
+      3: "3 Stars — Good",
+      4: "4 Stars — Very Good",
+      5: "5 Stars — Excellent"
+    };
+
+    let selectedRating = parseInt(ratingInput.value, 10) || 0;
+
+    function renderStars(rating, isHover = false) {
+      starBtns.forEach(btn => {
+        const val = parseInt(btn.dataset.rating, 10);
+        btn.classList.remove('active', 'hover-active');
+        if (val <= rating) {
+          btn.classList.add(isHover ? 'hover-active' : 'active');
+        }
+      });
+    }
+
+    function updateCaption(rating) {
+      if (rating && ratingDescriptions[rating]) {
+        statusCaption.textContent = ratingDescriptions[rating];
+        statusCaption.classList.add('has-rating');
+      } else {
+        statusCaption.textContent = "Select a star rating";
+        statusCaption.classList.remove('has-rating');
+      }
+    }
+
+    // Initialize with existing rating if any
+    if (selectedRating > 0) {
+      renderStars(selectedRating, false);
+      updateCaption(selectedRating);
+    }
+
+    // Star interaction handlers
+    starBtns.forEach(btn => {
+      const ratingVal = parseInt(btn.dataset.rating, 10);
+
+      btn.addEventListener('mouseenter', () => {
+        renderStars(ratingVal, true);
+        updateCaption(ratingVal);
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        renderStars(selectedRating, false);
+        updateCaption(selectedRating);
+      });
+
+      btn.addEventListener('click', () => {
+        selectedRating = ratingVal;
+        ratingInput.value = selectedRating;
+        renderStars(selectedRating, false);
+        updateCaption(selectedRating);
+        ratingError.style.display = 'none';
+        starBtns.forEach(b => {
+          b.setAttribute('aria-checked', parseInt(b.dataset.rating, 10) === selectedRating ? 'true' : 'false');
+        });
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const next = Math.min(5, selectedRating + 1);
+          const nextBtn = starBtns.find(b => parseInt(b.dataset.rating, 10) === next);
+          if (nextBtn) nextBtn.click();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const prev = Math.max(1, selectedRating - 1);
+          const prevBtn = starBtns.find(b => parseInt(b.dataset.rating, 10) === prev);
+          if (prevBtn) prevBtn.click();
+        }
+      });
+    });
+
+    // Character counter & feedback validation
+    if (textarea) {
+      textarea.addEventListener('input', () => {
+        const len = textarea.value.length;
+        if (charCounter) charCounter.textContent = `${len} / 2000`;
+        if (len >= 3) {
+          feedbackError.style.display = 'none';
+          textarea.removeAttribute('aria-invalid');
+        }
+      });
+
+      textarea.addEventListener('blur', () => {
+        if (textarea.value.trim().length > 0 && textarea.value.trim().length < 3) {
+          feedbackError.style.display = 'block';
+          textarea.setAttribute('aria-invalid', 'true');
+        }
+      });
+    }
+
+    // Form submission validation
+    form.addEventListener('submit', (e) => {
+      let valid = true;
+
+      if (!selectedRating || selectedRating < 1 || selectedRating > 5) {
+        ratingError.style.display = 'block';
+        valid = false;
+      } else {
+        ratingError.style.display = 'none';
+      }
+
+      const text = textarea ? textarea.value.trim() : '';
+      if (!text || text.length < 3) {
+        feedbackError.style.display = 'block';
+        if (textarea) textarea.setAttribute('aria-invalid', 'true');
+        valid = false;
+      } else {
+        feedbackError.style.display = 'none';
+      }
+
+      if (!valid) {
+        e.preventDefault();
+      } else if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Submitting...';
+      }
+    });
+
+  })();
+</script>
+{% endblock %}
+
