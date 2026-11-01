@@ -53,23 +53,6 @@
       box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
     }
 
-    .auth-req-logo-link {
-      display: inline-block;
-      margin-bottom: 24px;
-      transition: opacity var(--transition);
-    }
-
-    .auth-req-logo-link:hover {
-      opacity: 0.85;
-    }
-
-    .auth-req-logo-img {
-      height: 48px;
-      width: auto;
-      display: block;
-      margin: 0 auto;
-    }
-
     .auth-req-icon-box {
       width: 48px;
       height: 48px;
@@ -179,10 +162,6 @@
 
 <div class="auth-req-wrapper">
   <div class="auth-req-card">
-    <a href="/" class="auth-req-logo-link" title="padikkunnundo.app home">
-      <img src="{{ url_for('static', filename='img/logo_about.webp') }}" alt="padikkunnundo.app logo" class="auth-req-logo-img" decoding="async">
-    </a>
-
     <div class="auth-req-icon-box" aria-hidden="true">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
